@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="soot-2.5.0.jar" sourcepath="/home/andrei/Desktop/sootall-2.5.0/soot-2.5.0"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/home/sae/apron/japron/apron.jar"/>
+	<classpathentry kind="lib" path="/home/sae/apron/japron/gmp.jar"/>
+	<classpathentry kind="output" path="p2bin"/>
+</classpath>
