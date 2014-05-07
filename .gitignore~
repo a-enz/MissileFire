@@ -1,2 +1,2 @@
 # Ignore class files from the directory we're working on #
-/src/ch/ethz/sae/*.class
+p2bin/ch/ethz/sae/*.class

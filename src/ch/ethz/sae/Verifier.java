@@ -1,12 +1,15 @@
 package ch.ethz.sae;
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 import soot.jimple.spark.SparkTransformer;
 import soot.jimple.spark.pag.PAG;
+import soot.Local;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
+import soot.Unit;
 import soot.toolkits.graph.BriefUnitGraph;
 
 public class Verifier {
@@ -18,24 +21,45 @@ public class Verifier {
 			System.exit(-1);
 		}
 		
+		//args[0] is the name of the file we want to analyze:
 		String analyzedClass = args[0];
+		//create a soot object for this file:
 		SootClass c = loadClass(analyzedClass);
 		PAG pointsToAnalysis = doPointsToAnalysis(c);
 
-		int programCorrectFlag = 1;
-
+		boolean programCorrectFlag = true;
+		
+		//do for all methods in the file we want to analyze:
 		for (SootMethod method : c.getMethods()) {
-
+			System.out.println("method toString:\n" + method.toString());
+			System.out.println(method.getActiveBody().toString());
 			Analysis analysis = new Analysis(new BriefUnitGraph(
 					method.retrieveActiveBody()), c);
 			
-			analysis.run();
+			//analysis.run();
+
+			Iterator<Unit> uit = analysis.g.iterator();
+
+			for(Local loco : analysis.g.getBody().getLocals()){
+				System.out.println(loco.toString());
+			}
+			
+			while(uit.hasNext()){
+				System.out.println(uit.next().toString());
+			}
+		
+			/* 
+			 * 'g' the unit graph consists of:
+			 * some data types to access the 'Unit' Interface which looks
+			 * like it represents the program labels we discussed in class.
+			 * Each unit represents a labelin the program body
+			 */
 			
 			//TODO: use analysis results to check safety
-
+			if(!programCorrectFlag) break; //change that to be a condition on analysis result. then set flag to false
 		}
 		
-		if (programCorrectFlag == 1) {
+		if (programCorrectFlag) {
 			System.out.println("Program " + analyzedClass + " is SAFE");
 		} else {
 			System.out.println("Program " + analyzedClass + " is UNSAFE");
