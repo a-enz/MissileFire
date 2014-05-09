@@ -99,14 +99,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		}
 
 		env = new Environment(ints, reals);
-		
-
-		//TEST OUTPUT START
-		System.out.println(">>LOCAL INTS:");
-		for(String name : local_ints){
-			System.out.println("-->" + name);
-		}
-		//TEST OUTPUT END
 	}
 
 	/* Instantiate a domain. */
@@ -170,10 +162,36 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				//TODO right side binary expression
 
 			} else {
-				//TODO right side all other cases (probably call 'unhandled()' ?
+				unhandled("expression: '" + right.toString() + "'"); //we just print the unhandled statement and exit
 			}
+			
+			/* TODO we also need to handle:
+			 * -JMulExpr
+			 * -JSubExpr
+			 * -JAddExpr
+			 * -JDivExpr
+			 * 
+			 * -JEqExpr (==)
+			 * -JGeExpr (>=)
+			 * -JGtExpr (>)
+			 * -JLeExpr (>=)
+			 * -JLtExpr (<)
+			 * -JNeExpr (!=)
+			 * 
+			 * additionally we need to handle:
+			 * -RefType (access to procedure calls like constructors and fire())
+			 */
 		}
 	}
+	
+	/**
+	 * TODO This is the method where we have to handle statements (labels)
+	 * 
+	 * @param current: 		
+	 * @param op:			
+	 * @param fallOut					
+	 * @param branchOuts	
+	 */
 
 	@Override
 	protected void flowThrough(AWrapper current, Unit op,
@@ -189,11 +207,14 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			Abstract1 o_branchout = new Abstract1(man, in);
 
 			if (s instanceof DefinitionStmt) {
-				// call handleDef
+				handleDef(in, ((DefinitionStmt) s).getLeftOp(), ((DefinitionStmt) s).getRightOp());
 
 			} else if (s instanceof JIfStmt) {
 				// call handleIf
+			} else {
+				unhandled("statement: '" + s.toString() + "'"); //we just print the unhandled statement and exit
 			}
+			//TODO somewhere in here we also have to handle loops
 		} catch (ApronException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -201,17 +222,11 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	}
 
 	// Initialize starting label (top)
+	// in Apron terms: "top" means "universal" (always true)
 	@Override
-	protected AWrapper entryInitialFlow() {
+	protected AWrapper entryInitialFlow(){
 		try{
-			int varcount = local_ints.length;
-			Interval intervals[] = new Interval[local_ints.length];
-			for(int i = 0 ; i < varcount ; i++){
-				intervals[i] = new Interval();
-				intervals[i].setTop();
-			}
-			
-			Abstract1 a1 = new Abstract1(man,env,local_ints,intervals);
+			Abstract1 a1 = new Abstract1(man,env,false); //this initializes to top
 			return new AWrapper(a1);
 		} catch (ApronException e){
 			e.printStackTrace();
@@ -226,9 +241,16 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	}
 
 	// Initialize all labels (bottom)
+	// in Apron terms: "bottom" means "empty" (always false)
 	@Override
 	protected AWrapper newInitialFlow() {
-		return null;
+		try{
+			Abstract1 a1 = new Abstract1(man,env,true); //this initializes to bottom
+			return new AWrapper(a1);
+		} catch (ApronException e){
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	@Override
@@ -237,7 +259,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			dest.copy(source);
 		} catch (Exception e){
 			//TEST OUTPUT START
-			System.out.println("Error occured in copy()"); 
+			System.out.println("Error occuring in copy() cought"); 
 			//TEST OUTPUT END
 		}
 		

@@ -31,39 +31,32 @@ public class Verifier {
 		//do for all methods in the file we want to analyze:
 		for (SootMethod method : c.getMethods()) {
 			
-			//TEST OUTPUT START
-			System.out.println("method toString:\n" + method.toString());
-			System.out.println(method.getActiveBody().toString());
-			//TEST OUTPUT END
-			
-			Analysis analysis = new Analysis(new BriefUnitGraph(
-					method.retrieveActiveBody()), c);
-			
-			//analysis.run();
-			
-			
-			//TEST OUTPUT START
-			Iterator<Unit> uit = analysis.g.iterator();
-
-			for(Local loco : analysis.g.getBody().getLocals()){
-				System.out.println(loco.toString());
+			if(!method.getName().equals("<init>")){
+				
+				//TEST OUTPUT START
+				System.out.println("method toString:\n" + method.toString());
+				System.out.println(method.getActiveBody().toString());
+				//TEST OUTPUT END
+				
+				Analysis analysis = new Analysis(new BriefUnitGraph(
+						method.retrieveActiveBody()), c);
+				
+				analysis.run();
+				
+				/* 
+				 * 'g' the unit graph consists of:
+				 * some data types to access the 'Unit' Interface which looks
+				 * like it represents the program labels we discussed in class.
+				 * Each unit represents a label in the program body
+				 */
+				
+				/*TODO: use analysis results to check safety.
+				 * this probably happens by checking if the 'size' field of a
+				 * particular MissileBattery is in the Polyhedra domain after 
+				 * the analysis
+				 */
+				if(!programCorrectFlag) break; //change that to be a condition on analysis result. then set flag to false
 			}
-			
-			while(uit.hasNext()){
-				Unit u = uit.next();
-				System.out.println(u.toString() + " || " + u.getUseAndDefBoxes().toString());
-			}
-			//TEST OUTPUT END
-			
-			/* 
-			 * 'g' the unit graph consists of:
-			 * some data types to access the 'Unit' Interface which looks
-			 * like it represents the program labels we discussed in class.
-			 * Each unit represents a label in the program body
-			 */
-			
-			//TODO: use analysis results to check safety
-			if(!programCorrectFlag) break; //change that to be a condition on analysis result. then set flag to false
 		}
 		
 		if (programCorrectFlag) {
@@ -71,6 +64,8 @@ public class Verifier {
 		} else {
 			System.out.println("Program " + analyzedClass + " is UNSAFE");
 		}
+		
+		
 	}
 
 	private static SootClass loadClass(String name) {
