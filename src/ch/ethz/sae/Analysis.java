@@ -6,6 +6,7 @@ import java.util.List;
 import apron.Abstract1;
 import apron.ApronException;
 import apron.Environment;
+import apron.Interval;
 import apron.Manager;
 import apron.MpqScalar;
 import apron.Polka;
@@ -63,7 +64,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		 * 'locals' that represent the same real variable have similar names though.
 		 */
 		Chain<Local> locals = g.getBody().getLocals();
-
+		
 		int count = 0;
 		Iterator<Local> it = locals.iterator();
 		while (it.hasNext()) {
@@ -98,6 +99,14 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		}
 
 		env = new Environment(ints, reals);
+		
+
+		//TEST OUTPUT START
+		System.out.println(">>LOCAL INTS:");
+		for(String name : local_ints){
+			System.out.println("-->" + name);
+		}
+		//TEST OUTPUT END
 	}
 
 	/* Instantiate a domain. */
@@ -194,7 +203,20 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	// Initialize starting label (top)
 	@Override
 	protected AWrapper entryInitialFlow() {
-		return null; //AWrapper l1 = new AWrapper();
+		try{
+			int varcount = local_ints.length;
+			Interval intervals[] = new Interval[local_ints.length];
+			for(int i = 0 ; i < varcount ; i++){
+				intervals[i] = new Interval();
+				intervals[i].setTop();
+			}
+			
+			Abstract1 a1 = new Abstract1(man,env,local_ints,intervals);
+			return new AWrapper(a1);
+		} catch (ApronException e){
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	// Implement Join
@@ -214,7 +236,9 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		try{
 			dest.copy(source);
 		} catch (Exception e){
-			System.out.println("Error occured in copy()"); //helper string
+			//TEST OUTPUT START
+			System.out.println("Error occured in copy()"); 
+			//TEST OUTPUT END
 		}
 		
 	}

@@ -4,6 +4,7 @@ public class ExampleTest {
     MissileBattery shooty = new MissileBattery(10);
     int i = 20;
     int t = 5;
+    i = 8 + t;
     t = 5 + i;
     rawr.fire(i);
     shooty.fire(t);
