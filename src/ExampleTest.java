@@ -1,8 +1,12 @@
 public class ExampleTest {
   public static void l() {
-    MissileBattery r = new MissileBattery(6);
+    MissileBattery rawr = new MissileBattery(6);
+    MissileBattery shooty = new MissileBattery(10);
     int i = 20;
-    r.fire(i);
+    int t = 5;
+    t = 5 + i;
+    rawr.fire(i);
+    shooty.fire(t);
   }
 }
 

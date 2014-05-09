@@ -8,29 +8,21 @@ import apron.ApronException;
 import apron.Environment;
 import apron.Manager;
 import apron.MpqScalar;
-
+import apron.Polka;
 import apron.Texpr1CstNode;
 import apron.Texpr1Intern;
 import apron.Texpr1Node;
 import apron.Texpr1VarNode;
-
-
 import soot.IntegerType;
 import soot.Local;
 import soot.SootClass;
-
 import soot.Unit;
 import soot.Value;
-
 import soot.jimple.BinopExpr;
 import soot.jimple.DefinitionStmt;
-
 import soot.jimple.IntConstant;
-
 import soot.jimple.Stmt;
-
 import soot.jimple.internal.AbstractBinopExpr;
-
 import soot.jimple.internal.JIfStmt;
 import soot.jimple.internal.JimpleLocal;
 import soot.toolkits.graph.UnitGraph;
@@ -39,9 +31,37 @@ import soot.util.Chain;
 
 // Implement your numerical analysis here.
 public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
+	
+
+	public static Manager man;
+	private Environment env;
+	public UnitGraph g;
+	public String local_ints[]; // integer local variables of the method
+	public static String reals[] = { "foo" };
+	public SootClass jclass;
+	
+	
+	/* === Constructor === */
+	public Analysis(UnitGraph g, SootClass jc) {
+		super(g);
+
+		this.g = g;
+		this.jclass = jc;
+
+		buildEnvironment();
+		instantiateDomain();
+
+	}
+	
 
 	private void recordIntLocalVars() {
 
+		/*
+		 * 'locals' is a list of all variables in a method. BUT it is important
+		 * to note that it is not an exact representation of the program code variables
+		 * i think a new variable is created for every assignment statement. those variables in
+		 * 'locals' that represent the same real variable have similar names though.
+		 */
 		Chain<Local> locals = g.getBody().getLocals();
 
 		int count = 0;
@@ -82,20 +102,12 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 
 	/* Instantiate a domain. */
 	private void instantiateDomain() {
-		// Initialize variable 'man' to Polyhedra
-
-	}
-
-	/* === Constructor === */
-	public Analysis(UnitGraph g, SootClass jc) {
-		super(g);
-
-		this.g = g;
-		this.jclass = jc;
-
-		buildEnvironment();
-		instantiateDomain();
-
+		/*
+		 * if Polka is initialized with 'true' then the domain can 
+		 * express strict inequalities, i.e., non-closed convex polyhedra
+		 * else the domain expresses closed convex polyhedra
+		 */
+		man = new Polka(true);
 	}
 
 	void run() {
@@ -115,7 +127,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		Value left = expr.getOp1();
 		Value right = expr.getOp2();
 
-		// handle JEqExpr, JNeExpr and the rest...
+		// TODO handle JEqExpr, JNeExpr and the rest...
 	}
 
 	// handle assignments
@@ -146,10 +158,10 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 					o.assign(man, varName, xp, null);
 				}
 			} else if (right instanceof BinopExpr) {
-
+				//TODO right side binary expression
 
 			} else {
-
+				//TODO right side all other cases (probably call 'unhandled()' ?
 			}
 		}
 	}
@@ -182,7 +194,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	// Initialize starting label (top)
 	@Override
 	protected AWrapper entryInitialFlow() {
-		return null;
+		return null; //AWrapper l1 = new AWrapper();
 	}
 
 	// Implement Join
@@ -199,7 +211,12 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 
 	@Override
 	protected void copy(AWrapper source, AWrapper dest) {
-		dest.copy(source);
+		try{
+			dest.copy(source);
+		} catch (Exception e){
+			System.out.println("Error occured in copy()"); //helper string
+		}
+		
 	}
 
 	/* It may be useful for widening */
@@ -207,12 +224,4 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	 * private HashSet<Stmt> backJumps = new HashSet<Stmt>(); private
 	 * HashSet<Integer> backJumpIntervals = new HashSet<Integer>();
 	 */
-
-	public static Manager man;
-	private Environment env;
-	public UnitGraph g;
-	public String local_ints[]; // integer local variables of the method
-	public static String reals[] = { "foo" };
-	public SootClass jclass;
-
 }
