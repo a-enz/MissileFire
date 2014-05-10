@@ -31,7 +31,7 @@ public class Verifier {
 		//do for all methods in the file we want to analyze:
 		for (SootMethod method : c.getMethods()) {
 			
-			if(!method.getName().equals("<init>")){
+			if(!method.getName().equals("<init>")){//cheap way to ignore the first function which should always be the same
 				
 				//TEST OUTPUT START
 				System.out.println("method toString:\n" + method.toString());
@@ -56,7 +56,7 @@ public class Verifier {
 				 * the analysis
 				 */
 				if(!programCorrectFlag) break; //change that to be a condition on analysis result. then set flag to false
-			}
+			}//close if(!method.getName().equals("<init>")
 		}
 		
 		if (programCorrectFlag) {
@@ -66,7 +66,7 @@ public class Verifier {
 		}
 		
 		
-	}
+	}//close main
 
 	private static SootClass loadClass(String name) {
 		SootClass c = Scene.v().loadClassAndSupport(name);

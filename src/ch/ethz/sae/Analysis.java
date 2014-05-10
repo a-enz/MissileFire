@@ -51,7 +51,12 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 
 		buildEnvironment();
 		instantiateDomain();
-
+		
+		System.out.println("*******************************\nInitializing Grid for the following Integer Variables:");
+		for(String name : local_ints){
+			System.out.print(name + "   ");
+		}
+		System.out.println();
 	}
 	
 
@@ -162,7 +167,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				//TODO right side binary expression
 
 			} else {
-				unhandled("expression: '" + right.toString() + "'"); //we just print the unhandled statement and exit
+				//unhandled("right side of assignment: '" + right.toString() + "'"); //we just print the unhandled statement and exit
 			}
 			
 			/* TODO we also need to handle:
@@ -181,6 +186,9 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			 * additionally we need to handle:
 			 * -RefType (access to procedure calls like constructors and fire())
 			 */
+		} else{
+			//we don't need to handle anything else but JimpleLocal objects
+			//unhandled("left side of assignment: '" + right.toString() + "'"); //we just print the unhandled statement and exit
 		}
 	}
 	
@@ -196,13 +204,31 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	@Override
 	protected void flowThrough(AWrapper current, Unit op,
 			List<AWrapper> fallOut, List<AWrapper> branchOuts) {
-
+		
 		Stmt s = (Stmt) op;
 		Abstract1 in = ((AWrapper) current).get();
 
 		Abstract1 o;
-
 		try {
+			//TEST OUTPUT START
+			System.out.println("--------------------------------------------------------");
+			System.out.println("Label: " + s.toString() + " | Wrapper: " + current.toString());
+			System.out.println("========================================================");
+			System.out.print("fallOut Wrapper:");
+			for(AWrapper fo : fallOut) {
+				System.out.print(fo.toString());
+			}
+			System.out.print("\nbranchOuts Wrapper:");
+			for(AWrapper bo : branchOuts){
+				System.out.print(bo.toString());
+			}
+			
+			//the following output should be the same as in the 2 lists above:
+			System.out.println("\nfalling through to: " + this.getFallFlowAfter(op).toString());
+			System.out.println("branching to: " + this.getBranchFlowAfter(op).toString());
+			//TEST OUTPUT END
+			
+			
 			o = new Abstract1(man, in);
 			Abstract1 o_branchout = new Abstract1(man, in);
 
@@ -212,7 +238,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			} else if (s instanceof JIfStmt) {
 				// call handleIf
 			} else {
-				unhandled("statement: '" + s.toString() + "'"); //we just print the unhandled statement and exit
+				//unhandled("statement: '" + s.toString() + "'"); //we just print the unhandled statement and exit
 			}
 			//TODO somewhere in here we also have to handle loops
 		} catch (ApronException e) {
@@ -227,7 +253,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	protected AWrapper entryInitialFlow(){
 		try{
 			Abstract1 a1 = new Abstract1(man,env,false); //this initializes to top
-			return new AWrapper(a1);
+			return new AWrapper(a1,man);
 		} catch (ApronException e){
 			e.printStackTrace();
 			return null;
@@ -246,7 +272,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	protected AWrapper newInitialFlow() {
 		try{
 			Abstract1 a1 = new Abstract1(man,env,true); //this initializes to bottom
-			return new AWrapper(a1);
+			return new AWrapper(a1,man);
 		} catch (ApronException e){
 			e.printStackTrace();
 			return null;
