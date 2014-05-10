@@ -1,9 +1,7 @@
+TODO:
 
-Verifier is the class that needs to do verification.
-
-To run:
-
-1) first build using build.sh (on Linux).
-2) then run with run.sh
-
-An eclipse project is also included, so you should be able to directly use it as well.
+-start working on handleDef() method (most of the code needs to go here)
+-start working on handleIf() method
+-figure out why AWrapper class is needed (especially why those exact fields?)
+-figure out how to check the analysis output for an unsafe method
+-figure out how to handle loops with Soots 'LoopNestTree' class
