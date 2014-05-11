@@ -7,8 +7,10 @@ public class AWrapper {
 	Manager man;
 	Object statement;
 
-	public AWrapper(Abstract1 e) {
+	//changed constructor: now initializes man too
+	public AWrapper(Abstract1 e, Manager m) {
 		elem = e;
+		man = m;
 	}
 
 	public Abstract1 get() {

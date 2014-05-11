@@ -6,6 +6,7 @@ import java.util.List;
 import apron.Abstract1;
 import apron.ApronException;
 import apron.Environment;
+import apron.Interval;
 import apron.Manager;
 import apron.MpqScalar;
 import apron.Polka;
@@ -39,6 +40,8 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	public String local_ints[]; // integer local variables of the method
 	public static String reals[] = { "foo" };
 	public SootClass jclass;
+	//helper int
+	private int printLabelCount = 0;
 	
 	
 	/* === Constructor === */
@@ -50,7 +53,12 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 
 		buildEnvironment();
 		instantiateDomain();
-
+		
+		System.out.println("*******************************\nInitializing Grid for the following Integer Variables:");
+		for(String name : local_ints){
+			System.out.print(name + "   ");
+		}
+		System.out.println();
 	}
 	
 
@@ -63,7 +71,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		 * 'locals' that represent the same real variable have similar names though.
 		 */
 		Chain<Local> locals = g.getBody().getLocals();
-
+		
 		int count = 0;
 		Iterator<Local> it = locals.iterator();
 		while (it.hasNext()) {
@@ -151,7 +159,10 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				o.assign(man, varName, xp, null);
 
 			} else if (right instanceof JimpleLocal) {
-				/* Example of handling assignment to a local variable */
+				/* Example of handling assignment to a local variable 
+				 * only handle it if it is a Integer variable and
+				 * thus stored in our Environment `env`
+				 */
 				if (env.hasVar(((JimpleLocal) right).getName())) {
 					rAr = new Texpr1VarNode(((JimpleLocal) right).getName());
 					xp = new Texpr1Intern(env, rAr);
@@ -161,30 +172,109 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				//TODO right side binary expression
 
 			} else {
-				//TODO right side all other cases (probably call 'unhandled()' ?
+				//unhandled("right side of assignment: '" + right.toString() + "'"); //we just print the unhandled statement and exit
 			}
+			
+			/* TODO we also need to handle:
+			 * -JMulExpr
+			 * -JSubExpr
+			 * -JAddExpr
+			 * -JDivExpr
+			 * 
+			 * -JEqExpr (==)
+			 * -JGeExpr (>=)
+			 * -JGtExpr (>)
+			 * -JLeExpr (>=)
+			 * -JLtExpr (<)
+			 * -JNeExpr (!=)
+			 * 
+			 * additionally we need to handle:
+			 * -RefType (access to procedure calls like constructors and fire())
+			 */
+		} else{
+			//we don't need to handle anything else but JimpleLocal objects
+			//unhandled("left side of assignment: '" + right.toString() + "'"); //we just print the unhandled statement and exit
 		}
 	}
+	
+	/**
+	 * TODO This is the method where we have to handle statements (labels)
+	 * 
+	 * @param current: 		
+	 * @param op:			
+	 * @param fallOut					
+	 * @param branchOuts	
+	 */
 
 	@Override
 	protected void flowThrough(AWrapper current, Unit op,
 			List<AWrapper> fallOut, List<AWrapper> branchOuts) {
-
+		
+		/* we still need to initialize the `statement` field in AWrapper
+		 * and this is the first opportunity we get. Unfortunately this
+		 * method will be called several times on an particular AWrapper instance 
+		 * which makes it also a weird place to initialize it. That's
+		 * why we check for the null value
+		 */
+		if(current.getStatement() == null) current.setStatement(op); 
+		
+		
 		Stmt s = (Stmt) op;
 		Abstract1 in = ((AWrapper) current).get();
 
 		Abstract1 o;
-
 		try {
+			//TEST OUTPUT START
+			
+			printLabel(s,current);
+			
+			System.out.print("BEFORE TRANSFORMER:\nfallOut:");
+			for(AWrapper fo : fallOut) {
+				System.out.print(fo.toString());
+			}
+			System.out.print("\nbranchOuts:");
+			for(AWrapper bo : branchOuts){
+				System.out.print(bo.toString());
+			}
+			System.out.println();
+			//TEST OUTPUT END
+			
+			
 			o = new Abstract1(man, in);
 			Abstract1 o_branchout = new Abstract1(man, in);
 
 			if (s instanceof DefinitionStmt) {
-				// call handleDef
+				handleDef(in, ((DefinitionStmt) s).getLeftOp(), ((DefinitionStmt) s).getRightOp());
+				//set changes to `current` and propagate to fallOut
 
 			} else if (s instanceof JIfStmt) {
 				// call handleIf
+			} else {
+				//unhandled("statement: '" + s.toString() + "'"); //we just print the unhandled statement and exit
 			}
+			
+			//simple forwarding for now: TODO improve if necessary
+			current.set(in);
+			for(AWrapper ft : fallOut){
+				ft.copy(current);
+			}
+			for(AWrapper bt : branchOuts){
+				bt.copy(current);
+			}
+			
+			//TEST OUTPUT START
+			System.out.print("\nAFTER TRANSORMER:\nfallOut:");
+			for(AWrapper fo : fallOut) {
+				System.out.print(fo.toString());
+			}
+			System.out.print("\nbranchOuts:");
+			for(AWrapper bo : branchOuts){
+				System.out.print(bo.toString());
+			}
+			System.out.println("\n");
+			//TEST OUTPUT END
+			
+			//TODO somewhere in here we also have to handle loops
 		} catch (ApronException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -192,21 +282,33 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	}
 
 	// Initialize starting label (top)
+	// in Apron terms: "top" means "universal" (always true)
 	@Override
-	protected AWrapper entryInitialFlow() {
-		return null; //AWrapper l1 = new AWrapper();
-	}
-
-	// Implement Join
+	protected AWrapper entryInitialFlow(){
+		try{
+			Abstract1 a1 = new Abstract1(man,env,false); //this initializes to top
+			return new AWrapper(a1,man);
+		} catch (ApronException e){
+			e.printStackTrace();
+			return null;
+		}
+	}//TODO Implement Join
 	@Override
 	protected void merge(AWrapper src1, AWrapper src2, AWrapper trg) {
 
 	}
 
 	// Initialize all labels (bottom)
+	// in Apron terms: "bottom" means "empty" (always false)
 	@Override
 	protected AWrapper newInitialFlow() {
-		return null;
+		try{
+			Abstract1 a1 = new Abstract1(man,env,true); //this initializes to bottom
+			return new AWrapper(a1,man);
+		} catch (ApronException e){
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	@Override
@@ -214,8 +316,19 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		try{
 			dest.copy(source);
 		} catch (Exception e){
-			System.out.println("Error occured in copy()"); //helper string
+			//TEST OUTPUT START
+			System.err.println("Error occuring in copy() cought"); 
+			System.exit(1);
+			//TEST OUTPUT END
 		}
+		
+	}
+	
+	private void printLabel(Stmt s, AWrapper current){
+		printLabelCount++;
+		System.out.println("----------------------------------------------------------------------");
+		System.out.println("Label " + printLabelCount + ": " + s.toString() + " | Wrapper: " + current.toString());
+		System.out.println("======================================================================");
 		
 	}
 
