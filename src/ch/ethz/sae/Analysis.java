@@ -40,6 +40,8 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	public String local_ints[]; // integer local variables of the method
 	public static String reals[] = { "foo" };
 	public SootClass jclass;
+	//helper int
+	private int printLabelCount = 0;
 	
 	
 	/* === Constructor === */
@@ -157,7 +159,10 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				o.assign(man, varName, xp, null);
 
 			} else if (right instanceof JimpleLocal) {
-				/* Example of handling assignment to a local variable */
+				/* Example of handling assignment to a local variable 
+				 * only handle it if it is a Integer variable and
+				 * thus stored in our Environment `env`
+				 */
 				if (env.hasVar(((JimpleLocal) right).getName())) {
 					rAr = new Texpr1VarNode(((JimpleLocal) right).getName());
 					xp = new Texpr1Intern(env, rAr);
@@ -220,21 +225,18 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		Abstract1 o;
 		try {
 			//TEST OUTPUT START
-			System.out.println("----------------------------------------------------------------------");
-			System.out.println("Label: " + s.toString() + " | Wrapper: " + current.toString());
-			System.out.println("======================================================================");
-			System.out.print("fallOut Wrapper:");
+			
+			printLabel(s,current);
+			
+			System.out.print("BEFORE TRANSFORMER:\nfallOut:");
 			for(AWrapper fo : fallOut) {
 				System.out.print(fo.toString());
 			}
-			System.out.print("\nbranchOuts Wrapper:");
+			System.out.print("\nbranchOuts:");
 			for(AWrapper bo : branchOuts){
 				System.out.print(bo.toString());
 			}
-			
-			//the following output should be the same as in the 2 lists above:
-			System.out.println("\nfalling through to: " + this.getFallFlowAfter(op).toString());
-			System.out.println("branching to: " + this.getBranchFlowAfter(op).toString());
+			System.out.println();
 			//TEST OUTPUT END
 			
 			
@@ -259,7 +261,19 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			for(AWrapper bt : branchOuts){
 				bt.copy(current);
 			}
-
+			
+			//TEST OUTPUT START
+			System.out.print("\nAFTER TRANSORMER:\nfallOut:");
+			for(AWrapper fo : fallOut) {
+				System.out.print(fo.toString());
+			}
+			System.out.print("\nbranchOuts:");
+			for(AWrapper bo : branchOuts){
+				System.out.print(bo.toString());
+			}
+			System.out.println("\n");
+			//TEST OUTPUT END
+			
 			//TODO somewhere in here we also have to handle loops
 		} catch (ApronException e) {
 			// TODO Auto-generated catch block
@@ -278,9 +292,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			e.printStackTrace();
 			return null;
 		}
-	}
-
-	// Implement Join
+	}//TODO Implement Join
 	@Override
 	protected void merge(AWrapper src1, AWrapper src2, AWrapper trg) {
 
@@ -309,6 +321,14 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			System.exit(1);
 			//TEST OUTPUT END
 		}
+		
+	}
+	
+	private void printLabel(Stmt s, AWrapper current){
+		printLabelCount++;
+		System.out.println("----------------------------------------------------------------------");
+		System.out.println("Label " + printLabelCount + ": " + s.toString() + " | Wrapper: " + current.toString());
+		System.out.println("======================================================================");
 		
 	}
 

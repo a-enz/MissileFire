@@ -8,3 +8,4 @@ TODO:
 - figure out why `AWrapper` class is needed (especially why those exact fields?)
 - figure out how to check the analysis output for an unsafe method
 - figure out how to handle loops with Soots `LoopNestTree` class
+- implement `merge()` (check implementation of it in Soots `BranchedRefVarsAnalysis` for hints)
