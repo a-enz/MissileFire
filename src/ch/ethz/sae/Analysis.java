@@ -205,15 +205,24 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	protected void flowThrough(AWrapper current, Unit op,
 			List<AWrapper> fallOut, List<AWrapper> branchOuts) {
 		
+		/* we still need to initialize the `statement` field in AWrapper
+		 * and this is the first opportunity we get. Unfortunately this
+		 * method will be called several times on an particular AWrapper instance 
+		 * which makes it also a weird place to initialize it. That's
+		 * why we check for the null value
+		 */
+		if(current.getStatement() == null) current.setStatement(op); 
+		
+		
 		Stmt s = (Stmt) op;
 		Abstract1 in = ((AWrapper) current).get();
 
 		Abstract1 o;
 		try {
 			//TEST OUTPUT START
-			System.out.println("--------------------------------------------------------");
+			System.out.println("----------------------------------------------------------------------");
 			System.out.println("Label: " + s.toString() + " | Wrapper: " + current.toString());
-			System.out.println("========================================================");
+			System.out.println("======================================================================");
 			System.out.print("fallOut Wrapper:");
 			for(AWrapper fo : fallOut) {
 				System.out.print(fo.toString());
@@ -234,12 +243,23 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 
 			if (s instanceof DefinitionStmt) {
 				handleDef(in, ((DefinitionStmt) s).getLeftOp(), ((DefinitionStmt) s).getRightOp());
+				//set changes to `current` and propagate to fallOut
 
 			} else if (s instanceof JIfStmt) {
 				// call handleIf
 			} else {
 				//unhandled("statement: '" + s.toString() + "'"); //we just print the unhandled statement and exit
 			}
+			
+			//simple forwarding for now: TODO improve if necessary
+			current.set(in);
+			for(AWrapper ft : fallOut){
+				ft.copy(current);
+			}
+			for(AWrapper bt : branchOuts){
+				bt.copy(current);
+			}
+
 			//TODO somewhere in here we also have to handle loops
 		} catch (ApronException e) {
 			// TODO Auto-generated catch block
@@ -285,7 +305,8 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			dest.copy(source);
 		} catch (Exception e){
 			//TEST OUTPUT START
-			System.out.println("Error occuring in copy() cought"); 
+			System.err.println("Error occuring in copy() cought"); 
+			System.exit(1);
 			//TEST OUTPUT END
 		}
 		
