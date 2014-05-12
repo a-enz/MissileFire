@@ -136,7 +136,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	// handle conditionals
 	private void handleIf(AbstractBinopExpr expr, Abstract1 in, AWrapper ow,
 			AWrapper ow_branchout) throws ApronException {
-
+		
 		Value left = expr.getOp1();
 		Value right = expr.getOp2();
 
@@ -182,6 +182,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				o.assign(man, varName, xp, null);
 				
 			} else {
+				//TODO what happens when creating a new MissileFire object?
 				//unhandled("right side of assignment: '" + right.toString() + "'"); //we just print the unhandled statement and exit
 			}
 			
@@ -242,9 +243,14 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			Abstract1 o_branchout = new Abstract1(man, in);
 
 			if (s instanceof DefinitionStmt) {
-				handleDef(in, ((DefinitionStmt) s).getLeftOp(), ((DefinitionStmt) s).getRightOp());
+				Value l = ((DefinitionStmt) s).getLeftOp();
+				Value r = ((DefinitionStmt) s).getRightOp();
+				handleDef(in, l, r);
+				
 			} else if (s instanceof JIfStmt) {
 				//TODO call hendleIf() with proper arguments
+				Value cond = ((JIfStmt) s).getCondition();
+				
 			} else {
 				//unhandled("statement: '" + s.toString() + "'"); //we just print the unhandled statement and exit
 			}
@@ -332,7 +338,15 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		
 	}
 	
-	
+	/**
+	 * Function to create a Expr Tree in Apron out of a Jimple Parse Tree.
+	 * It is a bit overkill because a complicated assignment expression
+	 * will be already broken down by Jimple into simple binary expressions
+	 * when constructing the program Labels (Units)
+	 * 
+	 * @param val 
+	 * @return
+	 */
 	private Texpr1Node jimpleToApronTree (Value val){
 
 		if (val instanceof IntConstant){
