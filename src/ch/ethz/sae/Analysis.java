@@ -169,26 +169,26 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 					o.assign(man, varName, xp, null);
 				}
 			} else if (right instanceof BinopExpr) {
-				//TODO right side binary expression
+				/* TODO handle
+				 * -JMulExpr
+				 * -JSubExpr
+				 * -JAddExpr
+				 * -JDivExpr
+				 * 
+				 * -JEqExpr (==)
+				 * -JGeExpr (>=)
+				 * -JGtExpr (>)
+				 * -JLeExpr (>=)
+				 * -JLtExpr (<)
+				 * -JNeExpr (!=)
+				 */
 
 			} else {
 				//unhandled("right side of assignment: '" + right.toString() + "'"); //we just print the unhandled statement and exit
 			}
 			
-			/* TODO we also need to handle:
-			 * -JMulExpr
-			 * -JSubExpr
-			 * -JAddExpr
-			 * -JDivExpr
+			/* TODO we also probably need to handle:
 			 * 
-			 * -JEqExpr (==)
-			 * -JGeExpr (>=)
-			 * -JGtExpr (>)
-			 * -JLeExpr (>=)
-			 * -JLtExpr (<)
-			 * -JNeExpr (!=)
-			 * 
-			 * additionally we need to handle:
 			 * -RefType (access to procedure calls like constructors and fire())
 			 */
 		} else{
@@ -245,10 +245,8 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 
 			if (s instanceof DefinitionStmt) {
 				handleDef(in, ((DefinitionStmt) s).getLeftOp(), ((DefinitionStmt) s).getRightOp());
-				//set changes to `current` and propagate to fallOut
-
 			} else if (s instanceof JIfStmt) {
-				// call handleIf
+				//TODO call hendleIf() with proper arguments
 			} else {
 				//unhandled("statement: '" + s.toString() + "'"); //we just print the unhandled statement and exit
 			}
@@ -295,6 +293,14 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	}//TODO Implement Join
 	@Override
 	protected void merge(AWrapper src1, AWrapper src2, AWrapper trg) {
+		Abstract1 in1, in2;
+		in1 = src1.get();
+		in2 = src2.get();
+		try {
+			trg.set(in1.joinCopy(man, in2));
+		} catch (ApronException e){
+			e.printStackTrace();
+		}
 
 	}
 
