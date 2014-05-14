@@ -4,8 +4,10 @@ public class ExampleTest {
 	  MissileBattery rawr = new MissileBattery(12);
 	  int x = 5;
 	  int y = 7;
-
-	  x = (x + 4) * (y - 1);
+	  
+	  if (x > 0){
+		  x = (x + 4) * (y - 1);
+	  }
 	  
 	  rawr.fire(y);
   }

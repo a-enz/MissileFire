@@ -19,18 +19,11 @@ import soot.Local;
 import soot.SootClass;
 import soot.Unit;
 import soot.Value;
-import soot.jimple.AbstractJimpleValueSwitch;
 import soot.jimple.BinopExpr;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.IntConstant;
 import soot.jimple.Stmt;
-import soot.jimple.internal.AbstractBinopExpr;
-import soot.jimple.internal.JAddExpr;
-import soot.jimple.internal.JDivExpr;
-import soot.jimple.internal.JIfStmt;
-import soot.jimple.internal.JMulExpr;
-import soot.jimple.internal.JSubExpr;
-import soot.jimple.internal.JimpleLocal;
+import soot.jimple.internal.*;
 import soot.toolkits.graph.UnitGraph;
 import soot.toolkits.scalar.ForwardBranchedFlowAnalysis;
 import soot.util.Chain;
@@ -139,6 +132,29 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		
 		Value left = expr.getOp1();
 		Value right = expr.getOp2();
+		
+		if (expr instanceof JEqExpr){
+			
+		}
+		else if (expr instanceof JNeExpr){
+			
+		}
+		else if (expr instanceof JGeExpr){
+			
+		}
+		else if (expr instanceof JGtExpr){
+			
+		}
+		else if (expr instanceof JLeExpr){
+			
+		}
+		else if (expr instanceof JLtExpr){
+			
+		}
+		else{
+			
+		}
+		
 
 		// TODO handle JEqExpr, JNeExpr and the rest...
 	}
@@ -223,7 +239,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 
 		Abstract1 o;
 		try {
-			
 			//TEST OUTPUT START
 			printLabel(s,current);
 			
@@ -250,6 +265,12 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			} else if (s instanceof JIfStmt) {
 				//TODO call hendleIf() with proper arguments
 				Value cond = ((JIfStmt) s).getCondition();
+				AWrapper ft = fallOut.get(0);
+				//we know there will be a branchout because
+				//we're handling a conditional statement
+				AWrapper bt = branchOuts.get(0);  
+				
+				handleIf((AbstractBinopExpr) cond, in, ft, bt);
 				
 			} else {
 				//unhandled("statement: '" + s.toString() + "'"); //we just print the unhandled statement and exit

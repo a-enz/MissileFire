@@ -1,3 +1,1 @@
-#gitignore to exclude all .class files in this subdirectory#
-
 *.class
