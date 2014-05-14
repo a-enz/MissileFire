@@ -6,10 +6,10 @@ import java.util.List;
 import apron.Abstract1;
 import apron.ApronException;
 import apron.Environment;
-import apron.Interval;
 import apron.Manager;
 import apron.MpqScalar;
 import apron.Polka;
+import apron.Texpr1BinNode;
 import apron.Texpr1CstNode;
 import apron.Texpr1Intern;
 import apron.Texpr1Node;
@@ -19,12 +19,17 @@ import soot.Local;
 import soot.SootClass;
 import soot.Unit;
 import soot.Value;
+import soot.jimple.AbstractJimpleValueSwitch;
 import soot.jimple.BinopExpr;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.IntConstant;
 import soot.jimple.Stmt;
 import soot.jimple.internal.AbstractBinopExpr;
+import soot.jimple.internal.JAddExpr;
+import soot.jimple.internal.JDivExpr;
 import soot.jimple.internal.JIfStmt;
+import soot.jimple.internal.JMulExpr;
+import soot.jimple.internal.JSubExpr;
 import soot.jimple.internal.JimpleLocal;
 import soot.toolkits.graph.UnitGraph;
 import soot.toolkits.scalar.ForwardBranchedFlowAnalysis;
@@ -41,7 +46,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	public static String reals[] = { "foo" };
 	public SootClass jclass;
 	//helper int
-	private int printLabelCount = 0;
+	private int iterCount = 0;
 	
 	
 	/* === Constructor === */
@@ -131,7 +136,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	// handle conditionals
 	private void handleIf(AbstractBinopExpr expr, Abstract1 in, AWrapper ow,
 			AWrapper ow_branchout) throws ApronException {
-
+		
 		Value left = expr.getOp1();
 		Value right = expr.getOp2();
 
@@ -142,17 +147,17 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	private void handleDef(Abstract1 o, Value left, Value right)
 			throws ApronException {
 
-		Texpr1Node lAr = null;
 		Texpr1Node rAr = null;
 		Texpr1Intern xp = null;
-
+		
 		if (left instanceof JimpleLocal) {
 			String varName = ((JimpleLocal) left).getName();
-
+			
 			if (right instanceof IntConstant) {
 				/* Example of handling assignment to an integer constant */
-				IntConstant c = ((IntConstant) right);
 
+				IntConstant c = ((IntConstant) right);
+				
 				rAr = new Texpr1CstNode(new MpqScalar(c.value));
 				xp = new Texpr1Intern(env, rAr);
 
@@ -160,40 +165,34 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 
 			} else if (right instanceof JimpleLocal) {
 				/* Example of handling assignment to a local variable 
-				 * only handle it if it is a Integer variable and
+				 * only handle it if it is an Integer variable and
 				 * thus stored in our Environment `env`
 				 */
 				if (env.hasVar(((JimpleLocal) right).getName())) {
 					rAr = new Texpr1VarNode(((JimpleLocal) right).getName());
 					xp = new Texpr1Intern(env, rAr);
+					
 					o.assign(man, varName, xp, null);
 				}
 			} else if (right instanceof BinopExpr) {
-				//TODO right side binary expression
 
+				rAr = jimpleToApronTree((BinopExpr) right);
+				xp = new Texpr1Intern(env, rAr);
+				
+				o.assign(man, varName, xp, null);
+				
 			} else {
+				//TODO what happens when creating a new MissileFire object?
 				//unhandled("right side of assignment: '" + right.toString() + "'"); //we just print the unhandled statement and exit
 			}
 			
-			/* TODO we also need to handle:
-			 * -JMulExpr
-			 * -JSubExpr
-			 * -JAddExpr
-			 * -JDivExpr
+			/* TODO we also probably need to handle:
 			 * 
-			 * -JEqExpr (==)
-			 * -JGeExpr (>=)
-			 * -JGtExpr (>)
-			 * -JLeExpr (>=)
-			 * -JLtExpr (<)
-			 * -JNeExpr (!=)
-			 * 
-			 * additionally we need to handle:
 			 * -RefType (access to procedure calls like constructors and fire())
 			 */
 		} else{
 			//we don't need to handle anything else but JimpleLocal objects
-			//unhandled("left side of assignment: '" + right.toString() + "'"); //we just print the unhandled statement and exit
+			unhandled("left side of assignment: '" + right.toString() + "'"); //we just print the unhandled statement and exit
 		}
 	}
 	
@@ -224,8 +223,8 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 
 		Abstract1 o;
 		try {
-			//TEST OUTPUT START
 			
+			//TEST OUTPUT START
 			printLabel(s,current);
 			
 			System.out.print("BEFORE TRANSFORMER:\nfallOut:");
@@ -244,16 +243,22 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			Abstract1 o_branchout = new Abstract1(man, in);
 
 			if (s instanceof DefinitionStmt) {
-				handleDef(in, ((DefinitionStmt) s).getLeftOp(), ((DefinitionStmt) s).getRightOp());
-				//set changes to `current` and propagate to fallOut
-
+				Value l = ((DefinitionStmt) s).getLeftOp();
+				Value r = ((DefinitionStmt) s).getRightOp();
+				handleDef(in, l, r);
+				
 			} else if (s instanceof JIfStmt) {
-				// call handleIf
+				//TODO call hendleIf() with proper arguments
+				Value cond = ((JIfStmt) s).getCondition();
+				
 			} else {
 				//unhandled("statement: '" + s.toString() + "'"); //we just print the unhandled statement and exit
 			}
 			
-			//simple forwarding for now: TODO improve if necessary
+			/* simple forwarding for now: TODO improve if necessary
+			 * we definitely have to move those into the if..else..
+			 * case distinction.
+			 */
 			current.set(in);
 			for(AWrapper ft : fallOut){
 				ft.copy(current);
@@ -292,10 +297,19 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			e.printStackTrace();
 			return null;
 		}
-	}//TODO Implement Join
+	}
+	
+	// Implement Join
 	@Override
 	protected void merge(AWrapper src1, AWrapper src2, AWrapper trg) {
-
+		Abstract1 in1, in2;
+		in1 = src1.get();
+		in2 = src2.get();
+		try {
+			trg.set(in1.joinCopy(man, in2));
+		} catch (ApronException e){
+			e.printStackTrace();
+		}
 	}
 
 	// Initialize all labels (bottom)
@@ -324,10 +338,50 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		
 	}
 	
+	/**
+	 * Function to create a Expr Tree in Apron out of a Jimple Parse Tree.
+	 * It is a bit overkill because a complicated assignment expression
+	 * will be already broken down by Jimple into simple binary expressions
+	 * when constructing the program Labels (Units)
+	 * 
+	 * @param val 
+	 * @return
+	 */
+	private Texpr1Node jimpleToApronTree (Value val){
+
+		if (val instanceof IntConstant){
+			IntConstant c = ((IntConstant) val);
+			return new Texpr1CstNode(new MpqScalar(c.value));
+		}
+		else if (val instanceof JimpleLocal){
+			if (env.hasVar(((JimpleLocal) val).getName())) {
+				return new Texpr1VarNode(((JimpleLocal) val).getName());
+			} else unhandled("non-integer variable in tree: '" + val.toString() + "'"); //we just print the unhandled statement and exit
+		}
+		else if (val instanceof BinopExpr){//val instanceof JAddExpr || val instanceof JSubExpr || val instanceof JMulExpr || val instanceof JDivExpr){
+			Value left = ((BinopExpr) val).getOp1();
+			Value right = ((BinopExpr) val).getOp2();
+			Texpr1Node lAr = jimpleToApronTree(left);
+			Texpr1Node rAr = jimpleToApronTree(right);
+			
+			int opCode = 0;
+			if (val instanceof JAddExpr) opCode = 0; //check Apron API 'Texpr1BinNode' to see where those values came from
+			else if (val instanceof JSubExpr) opCode = 1;
+			else if (val instanceof JMulExpr) opCode = 2;
+			else if (val instanceof JDivExpr) opCode = 3;
+			else unhandled("binary operator in tree: '" + val.toString() + "'"); //we just print the unhandled statement and exit
+			
+			return new Texpr1BinNode(opCode, lAr, rAr);
+			
+		} else unhandled("expression in tree: '" + val.toString() + "'"); //we just print the unhandled statement and exit
+		return null; //should never happen, call to unhandled exits the system
+	}
+	
+	
 	private void printLabel(Stmt s, AWrapper current){
-		printLabelCount++;
+		iterCount++;
 		System.out.println("----------------------------------------------------------------------");
-		System.out.println("Label " + printLabelCount + ": " + s.toString() + " | Wrapper: " + current.toString());
+		System.out.println("Iteration " + iterCount + ": " + s.toString() + " | Wrapper: " + current.toString());
 		System.out.println("======================================================================");
 		
 	}

@@ -4,11 +4,8 @@ public class ExampleTest {
 	  MissileBattery rawr = new MissileBattery(12);
 	  int x = 5;
 	  int y = 7;
-	  
-	  while (x > 0){
-		  y = y + 7;
-		  x = x - 1;
-	  }
+
+	  x = (x + 4) * (y - 1);
 	  
 	  rawr.fire(y);
   }
