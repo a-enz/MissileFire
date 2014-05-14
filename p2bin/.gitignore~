@@ -1,0 +1,12 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+/ExampleTest.class
+/MissileBattery.class
+/ch
+=======
+#gitignore to exclude all .class files in this subdirectory#
+
+>>>>>>> 5f77ae3f1a852ae97a19f505b95b1db18c135278
+*.class
+>>>>>>> d1297b5dcda7751f44ada18ffc0d1dba27620048
