@@ -1,4 +1,5 @@
 public class ExampleTest {
+	
   public static void l() {
 	  
 	  MissileBattery rawr = new MissileBattery(12);
@@ -12,6 +13,11 @@ public class ExampleTest {
 			  y = 10;
 		  }
 	  }
+	  
+	  MissileBattery sissy = new MissileBattery(23);
+	  
+	  sissy.fire(y + 8);
+	  
 	  rawr.fire(y);
   }
 }
