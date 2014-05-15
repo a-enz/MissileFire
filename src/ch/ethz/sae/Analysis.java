@@ -1,9 +1,12 @@
 package ch.ethz.sae;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
+
+import com.sun.org.apache.bcel.internal.generic.LCONST;
 
 import apron.Abstract1;
 import apron.ApronException;
@@ -14,6 +17,8 @@ import apron.Linterm1;
 import apron.Manager;
 import apron.MpqScalar;
 import apron.Polka;
+import apron.Tcons1;
+import apron.Texpr0Node;
 import apron.Texpr1BinNode;
 import apron.Texpr1CstNode;
 import apron.Texpr1Intern;
@@ -136,11 +141,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			AWrapper ow_branchout) throws ApronException {
 		
 		Value left = expr.getOp1();
-		Value right = expr.getOp2();
-		System.out.println("right.toString(): " + right.toString());
-		System.out.println("right.getClass().toString(): " + right.getClass().toString());
-		System.out.println("right.getType().toString(): " + right.getType().toString());
-		
+		Value right = expr.getOp2();		
 		
 		//sets variable true if right operand on binary comparison is variable, false if const., error otherwise.
 		boolean rightIsVariable = false;
@@ -154,31 +155,89 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		
 		//handle an expression like: x 'comparison operator' (y/const.)
 		if (expr instanceof JEqExpr){
-			Linterm1 leftLinTerm = new Linterm1(left.toString(), new MpqScalar(1));
-			Linterm1 rightLinTerm;
-			Linexpr1 linExpr;
+			Texpr1VarNode leftNode = new Texpr1VarNode(left.toString());
+			Texpr1Node rightNode;
 			if(rightIsVariable){
-				rightLinTerm = new Linterm1(right.toString(),new MpqScalar(-1));
-				linExpr = new Linexpr1(env, new Linterm1[] {leftLinTerm,rightLinTerm}, new MpqScalar(0));				
+				rightNode = new Texpr1VarNode(right.toString());
 			}else{
-				linExpr = new Linexpr1(env,new Linterm1[] {leftLinTerm}, new MpqScalar(Integer.parseInt(right.toString())));
+				rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
 			}
-			Lincons1 linCons = new Lincons1(Lincons1.EQ, linExpr);
+			Tcons1 consIf  = new Tcons1(Tcons1.EQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			Tcons1 consElse  = new Tcons1(Tcons1.DISEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+
+			ow.set(new Abstract1(man, new Tcons1[] {consIf}));
+			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));			
+
 		}
 		else if (expr instanceof JNeExpr){
-			
+			Texpr1VarNode leftNode = new Texpr1VarNode(left.toString());
+			Texpr1Node rightNode;
+			if(rightIsVariable){
+				rightNode = new Texpr1VarNode(right.toString());
+			}else{
+				rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
+			}
+			Tcons1 consIf  = new Tcons1(Tcons1.DISEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			Tcons1 consElse  = new Tcons1(Tcons1.EQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+
+			ow.set(new Abstract1(man, new Tcons1[] {consIf}));
+			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));
 		}
 		else if (expr instanceof JGeExpr){
-			
+			Texpr1VarNode leftNode = new Texpr1VarNode(left.toString());
+			Texpr1Node rightNode;
+			if(rightIsVariable){
+				rightNode = new Texpr1VarNode(right.toString());
+			}else{
+				rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
+			}
+			Tcons1 consIf  = new Tcons1(Tcons1.SUPEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			Tcons1 consElse  = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
+
+			ow.set(new Abstract1(man, new Tcons1[] {consIf}));
+			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));
 		}
 		else if (expr instanceof JGtExpr){
-			
+			Texpr1VarNode leftNode = new Texpr1VarNode(left.toString());
+			Texpr1Node rightNode;
+			if(rightIsVariable){
+				rightNode = new Texpr1VarNode(right.toString());
+			}else{
+				rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
+			}
+			Tcons1 consIf  = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			Tcons1 consElse  = new Tcons1(Tcons1.SUPEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
+
+			ow.set(new Abstract1(man, new Tcons1[] {consIf}));
+			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));
 		}
 		else if (expr instanceof JLeExpr){
-			
+			Texpr1VarNode leftNode = new Texpr1VarNode(left.toString());
+			Texpr1Node rightNode;
+			if(rightIsVariable){
+				rightNode = new Texpr1VarNode(right.toString());
+			}else{
+				rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
+			}
+			Tcons1 consIf  = new Tcons1(Tcons1.SUPEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
+			Tcons1 consElse  = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+
+			ow.set(new Abstract1(man, new Tcons1[] {consIf}));
+			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));
 		}
 		else if (expr instanceof JLtExpr){
-			
+			Texpr1VarNode leftNode = new Texpr1VarNode(left.toString());
+			Texpr1Node rightNode;
+			if(rightIsVariable){
+				rightNode = new Texpr1VarNode(right.toString());
+			}else{
+				rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
+			}
+			Tcons1 consIf  = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
+			Tcons1 consElse  = new Tcons1(Tcons1.SUPEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+
+			ow.set(new Abstract1(man, new Tcons1[] {consIf}));
+			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));
 		}
 		else{
 			
@@ -308,13 +367,25 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			/* simple forwarding for now: TODO improve if necessary
 			 * we definitely have to move those into the if..else..
 			 * case distinction.
+			 * only case distinction so far: JIfStmt
 			 */
 			current.set(in);
-			for(AWrapper ft : fallOut){
-				ft.copy(current);
-			}
-			for(AWrapper bt : branchOuts){
-				bt.copy(current);
+			
+			if(s instanceof JIfStmt){
+//				for(AWrapper ft : fallOut){
+//					
+//					ft.copy(current);
+//				}
+//				for(AWrapper bt : branchOuts){
+//					bt.copy(current);
+//				}
+			}else{
+				for(AWrapper ft : fallOut){
+					ft.copy(current);
+				}
+				for(AWrapper bt : branchOuts){
+					bt.copy(current);
+				}
 			}
 			
 			//TEST OUTPUT START
