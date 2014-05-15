@@ -5,9 +5,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
+
 import apron.Abstract1;
 import apron.ApronException;
 import apron.Environment;
+import apron.Lincons1;
+import apron.Linexpr1;
+import apron.Linterm1;
 import apron.Manager;
 import apron.MpqScalar;
 import apron.Polka;
@@ -151,10 +156,33 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		
 		Value left = expr.getOp1();
 		Value right = expr.getOp2();
+		System.out.println("right.toString(): " + right.toString());
+		System.out.println("right.getClass().toString(): " + right.getClass().toString());
+		System.out.println("right.getType().toString(): " + right.getType().toString());
 		
-		System.err.println("value left: " + left + " | " + expr.toString() + " | value right: " + right);
+		
+		//sets variable true if right operand on binary comparison is variable, false if const., error otherwise.
+		boolean rightIsVariable = false;
+		if(right instanceof JimpleLocal){
+			rightIsVariable = true;
+		}else if(right instanceof IntConstant){
+		}else{
+			unhandled("right operand of binaryexpression in if statement");
+		}
+		
+		//handle an expression like: x 'comparison operator' (y/const.)
+
 		if (expr instanceof JEqExpr){
-			
+			Linterm1 leftLinTerm = new Linterm1(left.toString(), new MpqScalar(1));
+			Linterm1 rightLinTerm;
+			Linexpr1 linExpr;
+			if(rightIsVariable){
+				rightLinTerm = new Linterm1(right.toString(),new MpqScalar(-1));
+				linExpr = new Linexpr1(env, new Linterm1[] {leftLinTerm,rightLinTerm}, new MpqScalar(0));				
+			}else{
+				linExpr = new Linexpr1(env,new Linterm1[] {leftLinTerm}, new MpqScalar(Integer.parseInt(right.toString())));
+			}
+			Lincons1 linCons = new Lincons1(Lincons1.EQ, linExpr);
 		}
 		else if (expr instanceof JNeExpr){
 			
