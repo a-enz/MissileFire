@@ -1,8 +1,10 @@
 package ch.ethz.sae;
 
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
 
@@ -34,6 +36,8 @@ import soot.jimple.DefinitionStmt;
 import soot.jimple.IntConstant;
 import soot.jimple.Stmt;
 import soot.jimple.internal.*;
+import soot.jimple.toolkits.annotation.logic.Loop;
+import soot.toolkits.graph.LoopNestTree;
 import soot.toolkits.graph.UnitGraph;
 import soot.toolkits.scalar.ForwardBranchedFlowAnalysis;
 import soot.util.Chain;
@@ -51,6 +55,15 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	//helper int
 	private int iterCount = 0;
 	
+	/* The following HashMap we will be using to keep track of loops:
+	 * Key value is the BackJumpStmt of the loop and the Integer
+	 * Value indicates how many times the Stmt has been executed
+	 */
+	private Map<Stmt,Integer> takenBackJmps = new HashMap<Stmt,Integer>();
+	/*private HashSet<Stmt> backJumps = new HashSet<Stmt>(); 
+	* private HashSet<Integer> backJumpIntervals = new HashSet<Integer>();
+	*/
+	
 	
 	/* === Constructor === */
 	public Analysis(UnitGraph g, SootClass jc) {
@@ -61,12 +74,18 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 
 		buildEnvironment();
 		instantiateDomain();
+		getLoopData();
 		
+		
+		
+		
+		//TEST OUTPUT START
 		System.out.println("*******************************\nInitializing Grid for the following Integer Variables:");
 		for(String name : local_ints){
 			System.out.print(name + "   ");
 		}
 		System.out.println();
+		//TEST OUTPUT END
 	}
 	
 
@@ -152,8 +171,8 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			unhandled("right operand of binaryexpression in if statement");
 		}
 		
-		
 		//handle an expression like: x 'comparison operator' (y/const.)
+
 		if (expr instanceof JEqExpr){
 			Texpr1VarNode leftNode = new Texpr1VarNode(left.toString());
 			Texpr1Node rightNode;
@@ -301,7 +320,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	}
 	
 	/**
-	 * TODO This is the method where we have to handle statements (labels)
+	 * TODO This is the method where we have to handle statements (labels) and transformers 
 	 * 
 	 * @param current: 		
 	 * @param op:			
@@ -320,12 +339,13 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		 * why we check for the null value
 		 */
 		if(current.getStatement() == null) current.setStatement(op); 
-		
+
 		
 		Stmt s = (Stmt) op;
 		Abstract1 in = ((AWrapper) current).get();
 
 		Abstract1 o;
+		
 		try {
 			//TEST OUTPUT START
 			printLabel(s,current);
@@ -339,6 +359,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				System.out.print(bo.toString());
 			}
 			System.out.println();
+			
 			//TEST OUTPUT END
 			
 			
@@ -351,17 +372,29 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				handleDef(in, l, r);
 				
 			} else if (s instanceof JIfStmt) {
-				//TODO call hendleIf() with proper arguments
+				//TODO call hendleIf() with proper arguments (ask other groups if correct)
 				Value cond = ((JIfStmt) s).getCondition();
 				AWrapper ft = fallOut.get(0);
 				//we know there will be a branchout because
 				//we're handling a conditional statement
-				AWrapper bt = branchOuts.get(0);  
+				AWrapper bt = branchOuts.get(0);
 				
 				handleIf((AbstractBinopExpr) cond, in, ft, bt);
+
+			} else if (s instanceof JInvokeStmt){
+				/* TODO either handle those separately (which probably
+				 * means keeping track of fire and constructor calls) or merge
+				 * into else branch and remove warning there
+				 */
+				
+			} else if (s instanceof JGotoStmt) {
+				/* TODO either handle those separately (which means 
+				 * just propagate stuff forward) or merge
+				 * into else branch and remove warning there
+				 */	
 				
 			} else {
-				//unhandled("statement: '" + s.toString() + "'"); //we just print the unhandled statement and exit
+				unhandled("statement: '" + s.toString() + "'"); //we just print the unhandled statement and exit
 			}
 			
 			/* simple forwarding for now: TODO improve if necessary
@@ -369,6 +402,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			 * case distinction.
 			 * only case distinction so far: JIfStmt
 			 */
+			
 			current.set(in);
 			
 			if(s instanceof JIfStmt){
@@ -426,8 +460,30 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		Abstract1 in1, in2;
 		in1 = src1.get();
 		in2 = src2.get();
+		Stmt s = null;
 		try {
-			trg.set(in1.joinCopy(man, in2));
+			
+			/* Now handle BackJumpsStmts of loops:
+			 * (this code probably needs to go to into
+			 * the block where we handle JIfStmts and replace
+			 * the merge there)
+			 */
+//			if(takenBackJmps.containsKey(src1.getStatement())) s = (Stmt) src1.getStatement();
+//			else if(takenBackJmps.containsKey(src2.getStatement())) s = (Stmt) src2.getStatement();
+//			
+//			if (takenBackJmps.containsKey(s)) {
+//				int count = takenBackJmps.get(s);
+//				if (count > 5) {
+//					trg.set(in1.widening(man, in2));
+//				} else { //merge and update count
+//					trg.set(in1.joinCopy(man, in2));
+//					takenBackJmps.put(s, count + 1); //update count
+//					System.err.println(s.getClass()); 
+//				}
+//			} else {
+				trg.set(in1.joinCopy(man, in2));
+//			}
+			
 		} catch (ApronException e){
 			e.printStackTrace();
 		}
@@ -486,10 +542,10 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			Texpr1Node rAr = jimpleToApronTree(right);
 			
 			int opCode = 0;
-			if (val instanceof JAddExpr) opCode = 0; //check Apron API 'Texpr1BinNode' to see where those values came from
-			else if (val instanceof JSubExpr) opCode = 1;
-			else if (val instanceof JMulExpr) opCode = 2;
-			else if (val instanceof JDivExpr) opCode = 3;
+			if (val instanceof JAddExpr) opCode = Texpr1BinNode.OP_ADD; //intvalue : 0
+			else if (val instanceof JSubExpr) opCode = Texpr1BinNode.OP_SUB; //intvalue: 1
+			else if (val instanceof JMulExpr) opCode = Texpr1BinNode.OP_MUL; //intvalue: 2
+			else if (val instanceof JDivExpr) opCode = Texpr1BinNode.OP_DIV; //intvalue: 3
 			else unhandled("binary operator in tree: '" + val.toString() + "'"); //we just print the unhandled statement and exit
 			
 			return new Texpr1BinNode(opCode, lAr, rAr);
@@ -499,6 +555,17 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	}
 	
 	
+	private void getLoopData (){
+		LoopNestTree loops= new LoopNestTree(g.getBody());
+		
+		//initialize loop Stmts with integer value 0 
+		//which indicates this loop has never been taken
+		for(Loop l : loops){
+			takenBackJmps.put(l.getBackJumpStmt(), 0);
+		}
+		
+	}
+	
 	private void printLabel(Stmt s, AWrapper current){
 		iterCount++;
 		System.out.println("----------------------------------------------------------------------");
@@ -506,10 +573,4 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		System.out.println("======================================================================");
 		
 	}
-
-	/* It may be useful for widening */
-	/*
-	 * private HashSet<Stmt> backJumps = new HashSet<Stmt>(); private
-	 * HashSet<Integer> backJumpIntervals = new HashSet<Integer>();
-	 */
 }

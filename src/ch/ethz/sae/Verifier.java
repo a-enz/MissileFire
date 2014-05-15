@@ -38,6 +38,7 @@ public class Verifier {
 				System.out.println(method.getActiveBody().toString());
 				//TEST OUTPUT END
 				
+				
 				Analysis analysis = new Analysis(new BriefUnitGraph(
 						method.retrieveActiveBody()), c);
 				
