@@ -5,10 +5,13 @@ public class ExampleTest {
 	  int x = 5;
 	  int y = 7;
 	  
-	  if (x > 0){
-		  x = (x + 4) * (y - 1);
+	  while (x < y){
+		  x = x + 1;
+		  
+		  while(x == 5){
+			  y = 10;
+		  }
 	  }
-	  
 	  rawr.fire(y);
   }
 }
