@@ -181,11 +181,14 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			}else{
 				rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
 			}
+			
 			Tcons1 consIf  = new Tcons1(Tcons1.EQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
-			Tcons1 consElse  = new Tcons1(Tcons1.DISEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+
+			Tcons1 consElseUpper  = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			Tcons1 consElseLower = new Tcons1(Tcons1.SUP, new Texpr1Intern(env, new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
 
 			ow.set(new Abstract1(man, new Tcons1[] {consIf}));
-			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));			
+			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElseUpper,consElseLower}));			
 
 		}
 		else if (expr instanceof JNeExpr){
@@ -196,10 +199,13 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			}else{
 				rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
 			}
-			Tcons1 consIf  = new Tcons1(Tcons1.DISEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			
+			Tcons1 consIfUpper  = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			Tcons1 consIfLower = new Tcons1(Tcons1.SUP, new Texpr1Intern(env, new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
+			
 			Tcons1 consElse  = new Tcons1(Tcons1.EQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
 
-			ow.set(new Abstract1(man, new Tcons1[] {consIf}));
+			ow.set(new Abstract1(man, new Tcons1[] {consIfUpper,consIfLower}));
 			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));
 		}
 		else if (expr instanceof JGeExpr){
@@ -262,7 +268,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			
 		}
 		
-
+		
 		// TODO handle JEqExpr, JNeExpr and the rest...
 	}
 
@@ -383,6 +389,14 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				AWrapper bt = branchOuts.get(0);
 				
 				handleIf((AbstractBinopExpr) cond, in, ft, bt);
+				
+				o.meet(man, ft.get());
+				AWrapper mergedAbstractFO = new AWrapper(o,man);
+				ft.copy(mergedAbstractFO);	
+					
+				o_branchout.meet(man, bt.get());
+				AWrapper mergedAbstractBO = new AWrapper(o_branchout,man);
+				bt.copy(mergedAbstractBO);
 
 			} else if (s instanceof JInvokeStmt){
 				/* TODO either handle those separately (which probably
@@ -400,7 +414,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				unhandled("statement: '" + s.toString() + "'"); //we just print the unhandled statement and exit
 			}
 
-			
 			//TEST OUTPUT START
 			System.out.print("\nAFTER TRANSORMER:\nfallOut:");
 			for(AWrapper fo : fallOut) {
