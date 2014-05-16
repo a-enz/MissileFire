@@ -171,16 +171,31 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			unhandled("right operand of binaryexpression in if statement");
 		}
 		
+		boolean leftIsVariable = false;
+		if(left instanceof JimpleLocal){
+			leftIsVariable = true;
+		}else if(left instanceof IntConstant){
+		}else{
+			unhandled("right operand of binaryexpression in if statement");
+		}
+		
 		//handle an expression like: x 'comparison operator' (y/const.)
 
+		Texpr1Node leftNode;
+		if(leftIsVariable){
+			leftNode = new Texpr1VarNode(left.toString());
+		}else{
+			leftNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(left.toString())));
+		}
+		
+		Texpr1Node rightNode;
+		if(rightIsVariable){
+			rightNode = new Texpr1VarNode(right.toString());
+		}else{
+			rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
+		}
+		
 		if (expr instanceof JEqExpr){
-			Texpr1VarNode leftNode = new Texpr1VarNode(left.toString());
-			Texpr1Node rightNode;
-			if(rightIsVariable){
-				rightNode = new Texpr1VarNode(right.toString());
-			}else{
-				rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
-			}
 			
 			Tcons1 consIf  = new Tcons1(Tcons1.EQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
 
@@ -192,13 +207,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 
 		}
 		else if (expr instanceof JNeExpr){
-			Texpr1VarNode leftNode = new Texpr1VarNode(left.toString());
-			Texpr1Node rightNode;
-			if(rightIsVariable){
-				rightNode = new Texpr1VarNode(right.toString());
-			}else{
-				rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
-			}
 			
 			Tcons1 consIfUpper  = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
 			Tcons1 consIfLower = new Tcons1(Tcons1.SUP, new Texpr1Intern(env, new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
@@ -209,13 +217,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));
 		}
 		else if (expr instanceof JGeExpr){
-			Texpr1VarNode leftNode = new Texpr1VarNode(left.toString());
-			Texpr1Node rightNode;
-			if(rightIsVariable){
-				rightNode = new Texpr1VarNode(right.toString());
-			}else{
-				rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
-			}
+
 			Tcons1 consIf  = new Tcons1(Tcons1.SUPEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
 			Tcons1 consElse  = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
 
@@ -223,13 +225,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));
 		}
 		else if (expr instanceof JGtExpr){
-			Texpr1VarNode leftNode = new Texpr1VarNode(left.toString());
-			Texpr1Node rightNode;
-			if(rightIsVariable){
-				rightNode = new Texpr1VarNode(right.toString());
-			}else{
-				rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
-			}
+
 			Tcons1 consIf  = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
 			Tcons1 consElse  = new Tcons1(Tcons1.SUPEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
 
@@ -237,13 +233,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));
 		}
 		else if (expr instanceof JLeExpr){
-			Texpr1VarNode leftNode = new Texpr1VarNode(left.toString());
-			Texpr1Node rightNode;
-			if(rightIsVariable){
-				rightNode = new Texpr1VarNode(right.toString());
-			}else{
-				rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
-			}
+
 			Tcons1 consIf  = new Tcons1(Tcons1.SUPEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
 			Tcons1 consElse  = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
 
@@ -251,13 +241,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));
 		}
 		else if (expr instanceof JLtExpr){
-			Texpr1VarNode leftNode = new Texpr1VarNode(left.toString());
-			Texpr1Node rightNode;
-			if(rightIsVariable){
-				rightNode = new Texpr1VarNode(right.toString());
-			}else{
-				rightNode = new Texpr1CstNode(new MpqScalar(Integer.parseInt(right.toString())));
-			}
+
 			Tcons1 consIf  = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
 			Tcons1 consElse  = new Tcons1(Tcons1.SUPEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
 
@@ -265,11 +249,8 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));
 		}
 		else{
-			
+			unhandled("if statement with unhandled operator");
 		}
-		
-		
-		// TODO handle JEqExpr, JNeExpr and the rest...
 	}
 
 	// handle assignments
