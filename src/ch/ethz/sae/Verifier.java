@@ -6,6 +6,7 @@ import java.util.Iterator;
 import soot.jimple.spark.SparkTransformer;
 import soot.jimple.spark.pag.PAG;
 import soot.Local;
+import soot.PointsToSet;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
@@ -42,7 +43,18 @@ public class Verifier {
 				Analysis analysis = new Analysis(new BriefUnitGraph(
 						method.retrieveActiveBody()), c);
 				
+				for (Local var : method.getActiveBody().getLocals()){
+					if (var.getType().toString().equals("MissileBattery")){
+						PointsToSet reachedVars = pointsToAnalysis.reachingObjects(var);
+
+						System.out.println("Var :" + var.getName() + " reaches " + reachedVars);
+					}
+					
+				}
+				
 				analysis.run();
+
+				
 				
 				/* 
 				 * 'g' the unit graph consists of:
