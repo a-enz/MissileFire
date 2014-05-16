@@ -60,6 +60,8 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	 * Value indicates how many times the Stmt has been executed
 	 */
 	private Map<Stmt,Integer> takenBackJmps = new HashMap<Stmt,Integer>();
+	public Map<Stmt,Integer> newMBatt = new HashMap<Stmt,Integer>();
+	
 	/*private HashSet<Stmt> backJumps = new HashSet<Stmt>(); 
 	* private HashSet<Integer> backJumpIntervals = new HashSet<Integer>();
 	*/
@@ -382,7 +384,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				 * means keeping track of fire and constructor calls) or merge
 				 * into else branch and remove warning there
 				 */
-				
 				
 				//just propagate the fallthrough case
 				for (AWrapper ft : fallOut){
