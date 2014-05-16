@@ -330,8 +330,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		
 		Stmt s = (Stmt) op;
 		Abstract1 in = ((AWrapper) current).get();
-
-		Abstract1 o;
 		
 		try {
 			//TEST OUTPUT START
@@ -350,13 +348,18 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			//TEST OUTPUT END
 			
 			
-			o = new Abstract1(man, in);
+
+			Abstract1 o = new Abstract1(man, in);
 			Abstract1 o_branchout = new Abstract1(man, in);
 
 			if (s instanceof DefinitionStmt) {
 				Value l = ((DefinitionStmt) s).getLeftOp();
 				Value r = ((DefinitionStmt) s).getRightOp();
-				handleDef(in, l, r);
+				handleDef(o, l, r);
+				
+				for (AWrapper ft : fallOut){
+					ft.set(o);
+				}
 				
 			} else if (s instanceof JIfStmt) {
 				//TODO call hendleIf() with proper arguments (ask other groups if correct)
@@ -389,21 +392,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			} else {
 				unhandled("statement: '" + s.toString() + "'"); //we just print the unhandled statement and exit
 			}
-			
-			/* simple forwarding for now: TODO improve if necessary
-			 * we definitely have to move those into the if..else..
-			 * case distinction.
-			 * only case distinction so far: JIfStmt
-			 */
-			
-			current.set(in);
-			
-				for(AWrapper ft : fallOut){
-					ft.copy(current);
-				}
-				for(AWrapper bt : branchOuts){
-					bt.copy(current);
-				}			
+
 			//TEST OUTPUT START
 			System.out.print("\nAFTER TRANSORMER:\nfallOut:");
 			for(AWrapper fo : fallOut) {

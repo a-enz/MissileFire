@@ -1,9 +1,12 @@
 public class ExampleTest {
 	
+	
   public static void l() {
 	  
 	  MissileBattery rawr = new MissileBattery(12);
 	  int x = 5;
+	  x = 9;
+	  x = 11;
 	  int y = 7;
 	  
 	  while (x < y){
@@ -16,7 +19,8 @@ public class ExampleTest {
 	  
 	  MissileBattery sissy = new MissileBattery(23);
 	  
-	  sissy.fire(y + 8);
+	  sissy.fire(y);
+	  sissy.fire(y);
 	  
 	  rawr.fire(y);
   }
