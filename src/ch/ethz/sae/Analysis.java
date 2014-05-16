@@ -391,12 +391,10 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				handleIf((AbstractBinopExpr) cond, in, ft, bt);
 				
 				o.meet(man, ft.get());
-				AWrapper mergedAbstractFO = new AWrapper(o,man);
-				ft.copy(mergedAbstractFO);	
+				ft.set(o);
 					
 				o_branchout.meet(man, bt.get());
-				AWrapper mergedAbstractBO = new AWrapper(o_branchout,man);
-				bt.copy(mergedAbstractBO);
+				bt.set(o_branchout);
 
 			} else if (s instanceof JInvokeStmt){
 				/* TODO either handle those separately (which probably
@@ -404,15 +402,34 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				 * into else branch and remove warning there
 				 */
 				
+				
+				//just propagate the fallthrough case
+				for (AWrapper ft : fallOut){
+					ft.set(o);
+				}
+				
 			} else if (s instanceof JGotoStmt) {
 				/* TODO either handle those separately (which means 
 				 * just propagate stuff forward) or merge
 				 * into else branch and remove warning there
 				 */	
 				
+				
+				//just propagate the fallthrough case
+				for (AWrapper ft : branchOuts){
+					ft.set(o);
+				}
 			} else {
-				unhandled("statement: '" + s.toString() + "'"); //we just print the unhandled statement and exit
+				
+				
+				//just propagate the fallthrough case
+				for (AWrapper ft : fallOut){
+					ft.set(o);
+				}
 			}
+			
+			
+			
 
 			//TEST OUTPUT START
 			System.out.print("\nAFTER TRANSORMER:\nfallOut:");
