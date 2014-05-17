@@ -27,6 +27,7 @@ public class Verifier {
 		//create a soot object for this file:
 		SootClass c = loadClass(analyzedClass);
 		PAG pointsToAnalysis = doPointsToAnalysis(c);
+		
 		boolean programCorrectFlag = true;
 		
 		//do for all methods in the file we want to analyze:

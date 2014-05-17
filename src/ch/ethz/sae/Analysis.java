@@ -362,7 +362,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				for (AWrapper ft : fallOut){
 					ft.set(o);
 				}
-				
 			} else if (s instanceof JIfStmt) {
 				//TODO call hendleIf() with proper arguments (ask other groups if correct)
 				Value cond = ((JIfStmt) s).getCondition();
@@ -453,27 +452,22 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		in2 = src2.get();
 		Stmt s = null;
 		try {
+
+			if(takenBackJmps.containsKey(src1.getStatement())) s = (Stmt) src1.getStatement();
+			else if(takenBackJmps.containsKey(src2.getStatement())) s = (Stmt) src2.getStatement();
 			
-			/* Now handle BackJumpsStmts of loops:
-			 * (this code probably needs to go to into
-			 * the block where we handle JIfStmts and replace
-			 * the merge there)
-			 */
-//			if(takenBackJmps.containsKey(src1.getStatement())) s = (Stmt) src1.getStatement();
-//			else if(takenBackJmps.containsKey(src2.getStatement())) s = (Stmt) src2.getStatement();
-//			
-//			if (takenBackJmps.containsKey(s)) {
-//				int count = takenBackJmps.get(s);
-//				if (count > 5) {
-//					trg.set(in1.widening(man, in2));
-//				} else { //merge and update count
-//					trg.set(in1.joinCopy(man, in2));
-//					takenBackJmps.put(s, count + 1); //update count
-//					System.err.println(s.getClass()); 
-//				}
-//			} else {
+			if (takenBackJmps.containsKey(s)) {
+				int count = takenBackJmps.get(s);
+				if (count > 5) {
+					trg.set(in1.widening(man, in2));
+				} else { //merge and update count
+					trg.set(in1.joinCopy(man, in2));
+					takenBackJmps.put(s, count + 1); //update count
+					System.err.println(s.getClass()); 
+				}
+			} else {
 				trg.set(in1.joinCopy(man, in2));
-//			}
+			}
 			
 		} catch (ApronException e){
 			e.printStackTrace();
