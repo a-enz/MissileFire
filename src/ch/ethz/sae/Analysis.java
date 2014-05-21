@@ -30,6 +30,7 @@ import soot.IntegerType;
 import soot.Local;
 import soot.SootClass;
 import soot.Unit;
+import soot.UnitBox;
 import soot.Value;
 import soot.jimple.BinopExpr;
 import soot.jimple.DefinitionStmt;
@@ -59,7 +60,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	 * Key value is the BackJumpStmt of the loop and the Integer
 	 * Value indicates how many times the Stmt has been executed
 	 */
-	private Map<Stmt,Integer> takenBackJmps = new HashMap<Stmt,Integer>();
+	private Map<Stmt,Integer> loopHeadCounts = new HashMap<Stmt,Integer>();
 	public Map<Stmt,Integer> newMBatt = new HashMap<Stmt,Integer>();
 	
 	/*private HashSet<Stmt> backJumps = new HashSet<Stmt>(); 
@@ -332,27 +333,29 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		
 		Stmt s = (Stmt) op;
 		Abstract1 in = ((AWrapper) current).get();
+
 		
 		try {
 			//TEST OUTPUT START
+			
 			printLabel(s,current);
 			
 			System.out.print("BEFORE TRANSFORMER:\nfallOut:");
 			for(AWrapper fo : fallOut) {
-				System.out.print(fo.toString());
+				System.out.print(fo.toString() + " associated statement: " + fo.getStatement() + " | ");
 			}
 			System.out.print("\nbranchOuts:");
 			for(AWrapper bo : branchOuts){
-				System.out.print(bo.toString());
+				System.out.print(bo.toString()  + " associated statement: " + bo.getStatement() + " | ");
 			}
 			System.out.println();
 			
 			//TEST OUTPUT END
 			
-			
 
 			Abstract1 o = new Abstract1(man, in);
 			Abstract1 o_branchout = new Abstract1(man, in);
+			
 
 			if (s instanceof DefinitionStmt) {
 				Value l = ((DefinitionStmt) s).getLeftOp();
@@ -443,27 +446,29 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			return null;
 		}
 	}
+	// Implement merge dummy method
+	@Override 
+	protected void merge(AWrapper src1, AWrapper src2, AWrapper trg){
+		//should not be called
+	}
 	
 	// Implement Join
 	@Override
-	protected void merge(AWrapper src1, AWrapper src2, AWrapper trg) {
+	protected void merge(Unit node, AWrapper src1, AWrapper src2, AWrapper trg) {
 		Abstract1 in1, in2;
 		in1 = src1.get();
 		in2 = src2.get();
-		Stmt s = null;
+		Stmt s = (Stmt) node;
 		try {
 
-			if(takenBackJmps.containsKey(src1.getStatement())) s = (Stmt) src1.getStatement();
-			else if(takenBackJmps.containsKey(src2.getStatement())) s = (Stmt) src2.getStatement();
-			
-			if (takenBackJmps.containsKey(s)) {
-				int count = takenBackJmps.get(s);
+			if (loopHeadCounts.containsKey(s)) {
+				int count = loopHeadCounts.get(s);
 				if (count > 5) {
 					trg.set(in1.widening(man, in2));
+					System.err.println("widen to: " + trg.toString());
 				} else { //merge and update count
 					trg.set(in1.joinCopy(man, in2));
-					takenBackJmps.put(s, count + 1); //update count
-					System.err.println(s.getClass()); 
+					loopHeadCounts.put(s, count + 1); //update count
 				}
 			} else {
 				trg.set(in1.joinCopy(man, in2));
@@ -546,7 +551,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		//initialize loop Stmts with integer value 0 
 		//which indicates this loop has never been taken
 		for(Loop l : loops){
-			takenBackJmps.put(l.getBackJumpStmt(), 0);
+			loopHeadCounts.put(l.getHead(), 0);
 		}
 		
 	}
@@ -554,7 +559,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	private void printLabel(Stmt s, AWrapper current){
 		iterCount++;
 		System.out.println("----------------------------------------------------------------------");
-		System.out.println("Iteration " + iterCount + ": " + s.toString() + " | Wrapper: " + current.toString());
+		System.out.println("Iteration " + iterCount + ": " + s.toString() + " \nWrapper: " + current.toString());
 		System.out.println("======================================================================");
 		
 	}
