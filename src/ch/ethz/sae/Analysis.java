@@ -55,13 +55,14 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	public SootClass jclass;
 	//helper int
 	private int iterCount = 0;
+	private int JNewStmtCount = 0;
 	
 	/* The following HashMap we will be using to keep track of loops:
 	 * Key value is the BackJumpStmt of the loop and the Integer
 	 * Value indicates how many times the Stmt has been executed
 	 */
 	private Map<Stmt,Integer> loopHeadCounts = new HashMap<Stmt,Integer>();
-	public Map<Stmt,Integer> newMBatt = new HashMap<Stmt,Integer>();
+	public Map<Integer,Integer> newMBattAlloc = new HashMap<Integer,Integer>();
 	
 	/*private HashSet<Stmt> backJumps = new HashSet<Stmt>(); 
 	* private HashSet<Integer> backJumpIntervals = new HashSet<Integer>();
@@ -78,8 +79,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		buildEnvironment();
 		instantiateDomain();
 		getLoopData();
-		
-		
 		
 		
 		//TEST OUTPUT START
@@ -294,7 +293,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				xp = new Texpr1Intern(env, rAr);
 				
 				o.assign(man, varName, xp, null);
-				
 			} else {
 				//TODO what happens when creating a new MissileFire object?
 				//unhandled("right side of assignment: '" + right.toString() + "'"); //we just print the unhandled statement and exit
@@ -387,6 +385,18 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				 * means keeping track of fire and constructor calls) or merge
 				 * into else branch and remove warning there
 				 */
+				Value expr = s.getInvokeExpr();
+				if(expr instanceof JVirtualInvokeExpr){
+					//fire commands, maybe do something with that?
+				} else if (expr instanceof JSpecialInvokeExpr){
+					Value capacity = ((JSpecialInvokeExpr) expr).getArg(0);
+					if(capacity instanceof IntConstant){
+						JNewStmtCount++;
+						newMBattAlloc.put(JNewStmtCount, ((IntConstant) capacity).value);
+					} else{
+						unhandled("MissileBattery not instantiated with IntConstant");
+					}
+				}
 				
 				//just propagate the fallthrough case
 				for (AWrapper ft : fallOut){
@@ -461,12 +471,11 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		in2 = src2.get();
 		Stmt s = (Stmt) node;
 		try {
-
 			if (loopHeadCounts.containsKey(s)) {
 				int count = loopHeadCounts.get(s);
-				if (count > 5) {
+				if (count > 5) { // we use GEQ because merge happens after the loop has been executed
 					trg.set(in1.widening(man, in2));
-					System.err.println("widen to: " + trg.toString());
+					System.out.println("====>widen to: " + trg.toString());
 				} else { //merge and update count
 					trg.set(in1.joinCopy(man, in2));
 					loopHeadCounts.put(s, count + 1); //update count
@@ -560,7 +569,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	private void printLabel(Stmt s, AWrapper current){
 		iterCount++;
 		System.out.println("----------------------------------------------------------------------");
-		System.out.println("Iteration " + iterCount + ": " + s.toString() + " \nWrapper: " + current.toString());
+		System.out.println("Iteration " + iterCount + ": " + s.toString() + s.getClass() + " \nWrapper: " + current.toString());
 		System.out.println("======================================================================");
 		
 	}

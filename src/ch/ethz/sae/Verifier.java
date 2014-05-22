@@ -2,15 +2,20 @@ package ch.ethz.sae;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
+import soot.jimple.internal.JInvokeStmt;
+import soot.jimple.internal.JVirtualInvokeExpr;
 import soot.jimple.spark.SparkTransformer;
 import soot.jimple.spark.pag.PAG;
+import soot.jimple.spark.sets.DoublePointsToSet;
 import soot.Local;
 import soot.PointsToSet;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.Unit;
+import soot.Value;
 import soot.toolkits.graph.BriefUnitGraph;
 
 public class Verifier {
@@ -46,30 +51,25 @@ public class Verifier {
 				
 				for (Local var : method.getActiveBody().getLocals()){
 					if (var.getType().toString().equals("MissileBattery")){
-						PointsToSet reachedVars = pointsToAnalysis.reachingObjects(var);
-
-						System.out.println("Var :" + var.getName() + " reaches " + reachedVars);
+						DoublePointsToSet allocSite = (DoublePointsToSet) pointsToAnalysis.reachingObjects(var);
+						System.out.println("Var :" + var.getName() + " reaches " + allocSite);
 					}
 					
 				}
 				
 				analysis.run();
-
 				
-				
-				/* 
-				 * 'g' the unit graph consists of:
-				 * some data types to access the 'Unit' Interface which looks
-				 * like it represents the program labels we discussed in class.
-				 * Each unit represents a label in the program body
-				 */
+				//now check if the method is safe
 				
 				/*TODO: use analysis results to check safety.
 				 * this probably happens by checking if the 'size' field of a
 				 * particular MissileBattery is in the Polyhedra domain after 
 				 * the analysis
 				 */
-				if(!programCorrectFlag) break; //change that to be a condition on analysis result. then set flag to false
+				if(!isMethodSafe(analysis, pointsToAnalysis, method)){
+					programCorrectFlag = false;
+					break;
+				}
 			}//close if(!method.getName().equals("<init>")
 		}
 		
@@ -105,5 +105,33 @@ public class Verifier {
 		PAG pag = (PAG) Scene.v().getPointsToAnalysis();
 
 		return pag;
+	}
+	
+	private static boolean isMethodSafe(Analysis analysis, PAG graph, SootMethod method){
+		
+		boolean isSafe = false;
+		Map<Integer,Integer> allocSites = analysis.newMBattAlloc;
+		AWrapper state;
+				
+		for(Unit label : method.getActiveBody().getUnits()){
+			
+			state = analysis.getFlowBefore(label);
+			
+			if((label instanceof JInvokeStmt) && (((JInvokeStmt)label).getInvokeExpr() instanceof JVirtualInvokeExpr)){
+				JVirtualInvokeExpr expr = (JVirtualInvokeExpr) ((JInvokeStmt) label).getInvokeExpr();
+				Value missileObject = expr.getBase();
+				Value arg = expr.getArg(0);
+				
+				/* 1. get allocation site
+				 * 2. retrieve size interval of specific MBatt with allocation info
+				 * 3. check if fire command violates rules:
+				 * 	-->can't fire missile twice
+				 *  -->can't fire missile out of size interval
+				 */
+				
+				System.out.println("====>" + missileObject + arg);
+			}
+		}
+		return isSafe;
 	}
 }
