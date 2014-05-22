@@ -60,12 +60,6 @@ public class Verifier {
 				analysis.run();
 				
 				//now check if the method is safe
-				
-				/*TODO: use analysis results to check safety.
-				 * this probably happens by checking if the 'size' field of a
-				 * particular MissileBattery is in the Polyhedra domain after 
-				 * the analysis
-				 */
 				if(!isMethodSafe(analysis, pointsToAnalysis, method)){
 					programCorrectFlag = false;
 					break;
@@ -122,14 +116,14 @@ public class Verifier {
 				Value missileObject = expr.getBase();
 				Value arg = expr.getArg(0);
 				
-				/* 1. get allocation site
+				/* TODO Next steps to implement:
+				 * 1. get allocation site
 				 * 2. retrieve size interval of specific MBatt with allocation info
 				 * 3. check if fire command violates rules:
 				 * 	-->can't fire missile twice
 				 *  -->can't fire missile out of size interval
 				 */
 				
-				System.out.println("====>" + missileObject + arg);
 			}
 		}
 		return isSafe;

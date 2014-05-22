@@ -63,11 +63,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	 */
 	private Map<Stmt,Integer> loopHeadCounts = new HashMap<Stmt,Integer>();
 	public Map<Integer,Integer> newMBattAlloc = new HashMap<Integer,Integer>();
-	
-	/*private HashSet<Stmt> backJumps = new HashSet<Stmt>(); 
-	* private HashSet<Integer> backJumpIntervals = new HashSet<Integer>();
-	*/
-	
+
 	
 	/* === Constructor === */
 	public Analysis(UnitGraph g, SootClass jc) {
@@ -93,12 +89,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 
 	private void recordIntLocalVars() {
 
-		/*
-		 * 'locals' is a list of all variables in a method. BUT it is important
-		 * to note that it is not an exact representation of the program code variables
-		 * i think a new variable is created for every assignment statement. those variables in
-		 * 'locals' that represent the same real variable have similar names though.
-		 */
 		Chain<Local> locals = g.getBody().getLocals();
 		
 		int count = 0;
@@ -264,11 +254,11 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		Texpr1Intern xp = null;
 		
 		if (left instanceof JimpleLocal) {
+			//handle local variable assignments
 			String varName = ((JimpleLocal) left).getName();
 			
 			if (right instanceof IntConstant) {
-				/* Example of handling assignment to an integer constant */
-
+				//assign to Integer Values
 				IntConstant c = ((IntConstant) right);
 				
 				rAr = new Texpr1CstNode(new MpqScalar(c.value));
@@ -294,41 +284,18 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				
 				o.assign(man, varName, xp, null);
 			} else {
-				//TODO what happens when creating a new MissileFire object?
-				//unhandled("right side of assignment: '" + right.toString() + "'"); //we just print the unhandled statement and exit
+				//nothing happens to other cases
 			}
-			
-			/* TODO we also probably need to handle:
-			 * 
-			 * -RefType (access to procedure calls like constructors and fire())
-			 */
 		} else{
 			//we don't need to handle anything else but JimpleLocal objects
 			unhandled("left side of assignment: '" + right.toString() + "'"); //we just print the unhandled statement and exit
 		}
 	}
 	
-	/**
-	 * TODO This is the method where we have to handle statements (labels) and transformers 
-	 * 
-	 * @param current: 		
-	 * @param op:			
-	 * @param fallOut					
-	 * @param branchOuts	
-	 */
 
 	@Override
 	protected void flowThrough(AWrapper current, Unit op,
 			List<AWrapper> fallOut, List<AWrapper> branchOuts) {
-		
-		/* we still need to initialize the `statement` field in AWrapper
-		 * and this is the first opportunity we get. Unfortunately this
-		 * method will be called several times on an particular AWrapper instance 
-		 * which makes it also a weird place to initialize it. That's
-		 * why we check for the null value
-		 */
-		if(current.getStatement() == null) current.setStatement(op); 
-
 		
 		Stmt s = (Stmt) op;
 		Abstract1 in = ((AWrapper) current).get();
@@ -365,7 +332,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 					ft.set(o);
 				}
 			} else if (s instanceof JIfStmt) {
-				//TODO call hendleIf() with proper arguments (ask other groups if correct)
 				Value cond = ((JIfStmt) s).getCondition();
 				AWrapper ft = fallOut.get(0);
 				//we know there will be a branchout because
@@ -381,10 +347,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				bt.set(o_branchout);
 
 			} else if (s instanceof JInvokeStmt){
-				/* TODO either handle those separately (which probably
-				 * means keeping track of fire and constructor calls) or merge
-				 * into else branch and remove warning there
-				 */
 				Value expr = s.getInvokeExpr();
 				if(expr instanceof JVirtualInvokeExpr){
 					//fire commands, maybe do something with that?
@@ -404,13 +366,9 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				}
 				
 			} else if (s instanceof JGotoStmt) {
-				/* TODO either handle those separately (which means 
-				 * just propagate stuff forward) or merge
-				 * into else branch and remove warning there
-				 */	
 				
 				
-				//just propagate the fallthrough case
+				//just propagate the branch case
 				for (AWrapper ft : branchOuts){
 					ft.set(o);
 				}
@@ -422,8 +380,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 					ft.set(o);
 				}
 			}
-			
-			
 			
 
 			//TEST OUTPUT START
@@ -438,7 +394,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			System.out.println("\n");
 			//TEST OUTPUT END
 			
-			//TODO somewhere in here we also have to handle loops
+			
 		} catch (ApronException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -457,13 +413,16 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			return null;
 		}
 	}
-	// Implement merge dummy method
+	/* Implement merge dummy method because it is an abstract method we need to
+	 * implement, but it uses the second merge method anyway so we should be fine
+	 *
+	 */
 	@Override 
 	protected void merge(AWrapper src1, AWrapper src2, AWrapper trg){
 		//should not be called
 	}
 	
-	// Implement Join
+	// Real implementation of join and widening
 	@Override
 	protected void merge(Unit node, AWrapper src1, AWrapper src2, AWrapper trg) {
 		Abstract1 in1, in2;
@@ -471,9 +430,9 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		in2 = src2.get();
 		Stmt s = (Stmt) node;
 		try {
-			if (loopHeadCounts.containsKey(s)) {
+			if (loopHeadCounts.containsKey(s)) { //join/widening of loops
 				int count = loopHeadCounts.get(s);
-				if (count > 5) { // we use GEQ because merge happens after the loop has been executed
+				if (count > 5) { // we use GT because merge happens before the loop has been executed
 					trg.set(in1.widening(man, in2));
 					System.out.println("====>widen to: " + trg.toString());
 				} else { //merge and update count
@@ -481,7 +440,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 					loopHeadCounts.put(s, count + 1); //update count
 				}
 			} else {
-				trg.set(in1.joinCopy(man, in2));
+				trg.set(in1.joinCopy(man, in2)); //normal join
 			}
 			
 		} catch (ApronException e){
@@ -507,10 +466,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		try{
 			dest.copy(source);
 		} catch (Exception e){
-			//TEST OUTPUT START
-			System.err.println("Error occuring in copy() cought"); 
-			System.exit(1);
-			//TEST OUTPUT END
+			e.printStackTrace();
 		}
 		
 	}
@@ -558,7 +514,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	private void getLoopData (){
 		LoopNestTree loops= new LoopNestTree(g.getBody());
 		
-		//initialize loop Stmts with integer value 0 
+		//initialize loopHeadCount with integer value 0 
 		//which indicates this loop has never been taken
 		for(Loop l : loops){
 			loopHeadCounts.put(l.getHead(), 0);
@@ -566,6 +522,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		
 	}
 	
+	//TEST OUTPUT START
 	private void printLabel(Stmt s, AWrapper current){
 		iterCount++;
 		System.out.println("----------------------------------------------------------------------");
@@ -573,4 +530,5 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		System.out.println("======================================================================");
 		
 	}
+	//TEST OUTPUT END
 }
