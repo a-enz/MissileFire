@@ -13,8 +13,11 @@ public class ExampleTest {
     	  k++;
       }
       
+      MissileBattery c = new MissileBattery(20);
+      b = c;
+      
       a.fire(k);
-      b.fire(13);
+      b.fire(25);
   }
 }
 

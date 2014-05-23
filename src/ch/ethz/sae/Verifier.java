@@ -3,9 +3,14 @@ package ch.ethz.sae;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import apron.ApronException;
+import apron.Interval;
+import soot.jimple.IntConstant;
 import soot.jimple.internal.JInvokeStmt;
 import soot.jimple.internal.JVirtualInvokeExpr;
+import soot.jimple.internal.JimpleLocal;
 import soot.jimple.spark.SparkTransformer;
 import soot.jimple.spark.pag.PAG;
 import soot.jimple.spark.sets.DoublePointsToSet;
@@ -103,22 +108,65 @@ public class Verifier {
 	
 	private static boolean isMethodSafe(Analysis analysis, PAG graph, SootMethod method){
 		
-		boolean isSafe = false;
-		Map<Integer,Integer> allocSites = analysis.newMBattAlloc;
+		boolean isSafe = true;
+		Map<Local,Integer> allocSites = analysis.newMBattAlloc;
 		AWrapper state;
 				
 		for(Unit label : method.getActiveBody().getUnits()){
 			
-			state = analysis.getFlowBefore(label);
-			
 			if((label instanceof JInvokeStmt) && (((JInvokeStmt)label).getInvokeExpr() instanceof JVirtualInvokeExpr)){
+				state = analysis.getFlowBefore(label);
+				
 				JVirtualInvokeExpr expr = (JVirtualInvokeExpr) ((JInvokeStmt) label).getInvokeExpr();
 				Value missileObject = expr.getBase();
-				Value arg = expr.getArg(0);
+				Value argument = expr.getArg(0); //might be JimpleLocal or IntConstant
 				
+				PointsToSet p2s = graph.reachingObjects((Local) missileObject);
+				
+				int size = 0;
+				Interval argInterval;
+				Interval missileInterval;
+				
+				System.out.println(missileObject + " has been allocated at: " + p2s);
+				
+				
+				/* absolute shit-style programming coming up:
+				 * iterate through all allocated MBatt objects
+				 * and check if AllocNode of the object we use fire command on
+				 * and object we created intersect, if yes assign size of that 
+				 * created object
+				 */
+				
+				for(Entry<Local,Integer> entry : allocSites.entrySet()){
+					if(graph.reachingObjects(entry.getKey()).hasNonEmptyIntersection(p2s)){
+						size = entry.getValue();
+						break;
+					}
+				}
+				
+				try{
+					missileInterval = new Interval(0,size);
+					if(argument instanceof IntConstant) {
+						int value = ((IntConstant) argument).value;
+						argInterval = new Interval(value, value);
+					}
+					else if(argument instanceof JimpleLocal){
+						argInterval = state.get().getBound(analysis.man, argument.toString());
+					}
+					else {
+						argInterval = new Interval(-2,-1);
+					}
+					
+					int intersectCount = missileInterval.cmp(argInterval);
+					if(intersectCount <= 0) {
+						isSafe = false; break;
+					}
+				} catch (ApronException e){
+					
+				}
 				/* TODO Next steps to implement:
-				 * 1. get allocation site
-				 * 2. retrieve size interval of specific MBatt with allocation info
+				 * 1. get allocation site DONE
+				 * 2. retrieve size interval of specific MBatt with allocation info DONE
 				 * 3. check if fire command violates rules:
 				 * 	-->can't fire missile twice
 				 *  -->can't fire missile out of size interval

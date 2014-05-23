@@ -62,7 +62,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	 * Value indicates how many times the Stmt has been executed
 	 */
 	private Map<Stmt,Integer> loopHeadCounts = new HashMap<Stmt,Integer>();
-	public Map<Integer,Integer> newMBattAlloc = new HashMap<Integer,Integer>();
+	public Map<Local,Integer> newMBattAlloc = new HashMap<Local,Integer>();
 
 	
 	/* === Constructor === */
@@ -352,9 +352,11 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 					//fire commands, maybe do something with that?
 				} else if (expr instanceof JSpecialInvokeExpr){
 					Value capacity = ((JSpecialInvokeExpr) expr).getArg(0);
+					Local missileObj = (Local) ((JSpecialInvokeExpr) expr).getBase();
 					if(capacity instanceof IntConstant){
 						JNewStmtCount++;
-						newMBattAlloc.put(JNewStmtCount, ((IntConstant) capacity).value);
+						//safe newly instantiated MBatt object and argument int
+						newMBattAlloc.put(missileObj, ((IntConstant) capacity).value);
 					} else{
 						unhandled("MissileBattery not instantiated with IntConstant");
 					}
