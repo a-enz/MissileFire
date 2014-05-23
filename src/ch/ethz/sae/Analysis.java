@@ -309,14 +309,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		}
 	}
 	
-	/**
-	 * TODO This is the method where we have to handle statements (labels) and transformers 
-	 * 
-	 * @param current: 		
-	 * @param op:			
-	 * @param fallOut					
-	 * @param branchOuts	
-	 */
 
 	@Override
 	protected void flowThrough(AWrapper current, Unit op,
@@ -364,7 +356,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 					ft.set(o);
 				}
 			} else if (s instanceof JIfStmt) {
-				//TODO call hendleIf() with proper arguments (ask other groups if correct)
 				Value cond = ((JIfStmt) s).getCondition();
 				AWrapper ft = fallOut.get(0);
 				//we know there will be a branchout because
