@@ -1,5 +1,6 @@
 package ch.ethz.sae;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -64,6 +65,11 @@ public class Verifier {
 				
 				analysis.run();
 				
+				for(Unit u: method.getActiveBody().getUnits()){
+					AWrapper a = analysis.getFlowBefore(u);
+					System.out.println(a.toString());
+				}
+				
 				//now check if the method is safe
 				if(!isMethodSafe(analysis, pointsToAnalysis, method)){
 					programCorrectFlag = false;
@@ -109,8 +115,16 @@ public class Verifier {
 	private static boolean isMethodSafe(Analysis analysis, PAG graph, SootMethod method){
 		
 		boolean isSafe = true;
+		ArrayList<Integer> batterySizes = new ArrayList<Integer>();
 		Map<Local,Integer> allocSites = analysis.newMBattAlloc;
 		AWrapper state;
+		
+		for(Unit u : method.getActiveBody().getUnits()){
+			if(u instanceof JInvokeStmt && ((JInvokeStmt)u).getInvokeExpr().toString().startsWith("specialinvoke")){
+				System.out.println(((JInvokeStmt)u).getInvokeExpr().getArgCount());
+				batterySizes.add(((JInvokeStmt)u).getInvokeExpr().getArgCount());
+			}
+		}
 				
 		for(Unit label : method.getActiveBody().getUnits()){
 			

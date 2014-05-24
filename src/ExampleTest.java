@@ -1,23 +1,36 @@
 public class ExampleTest {
 	
 	
-  public static void l() {
-      int k=0;
-      int i=10;
-      
-      MissileBattery a = new MissileBattery(12);
-      MissileBattery b = a;
-
-      while(k < 5){
-    	  i += 2;
-    	  k++;
-      }
-      
-      MissileBattery c = new MissileBattery(20);
-      b = c;
-      
-      a.fire(k);
-      b.fire(25);
+//  public static void l() {
+//	  MissileBattery a = new MissileBattery(5);
+//	  int x = 5;
+//	  int y = 0;
+//	  while(y < x){
+//		  y++;
+//	  }
+//	  a.fire(3);
+//	  a.fire(4);
+//  }
+  
+//  public static void m() {
+//	  MissileBattery a = new MissileBattery(5);
+//	  int x = 5;
+//	  int y = 0;
+//	  while(y < x){
+//		  y++;
+//	  }
+//	  a.fire(4);
+//	  a.fire(4);
+//  }
+  
+  public static void n() {
+	  MissileBattery a = new MissileBattery(10);
+	  int x = 8;
+	  int y = 0;
+	  while(y < x){
+		  y++;
+	  }
+	  a.fire(y);
   }
 }
 
