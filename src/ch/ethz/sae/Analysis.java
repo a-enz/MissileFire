@@ -308,11 +308,11 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			
 			System.out.print("BEFORE TRANSFORMER:\nfallOut:");
 			for(AWrapper fo : fallOut) {
-				System.out.print(fo.toString() + " associated statement: " + fo.getStatement() + " | ");
+				System.out.print(fo.toString());
 			}
 			System.out.print("\nbranchOuts:");
 			for(AWrapper bo : branchOuts){
-				System.out.print(bo.toString()  + " associated statement: " + bo.getStatement() + " | ");
+				System.out.print(bo.toString());
 			}
 			System.out.println();
 			
@@ -366,13 +366,18 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				for (AWrapper ft : fallOut){
 					ft.set(o);
 				}
-				
+				for (AWrapper bt : branchOuts){
+					bt.set(o);
+				}
 			} else if (s instanceof JGotoStmt) {
 				
 				
-				//just propagate the branch case
-				for (AWrapper ft : branchOuts){
+				//just propagate the fallthrough case
+				for (AWrapper ft : fallOut){
 					ft.set(o);
+				}
+				for (AWrapper bt : branchOuts){
+					bt.set(o);
 				}
 			} else {
 				
@@ -380,6 +385,9 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				//just propagate the fallthrough case
 				for (AWrapper ft : fallOut){
 					ft.set(o);
+				}
+				for (AWrapper bt : branchOuts){
+					bt.set(o);
 				}
 			}
 			
@@ -421,7 +429,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	 */
 	@Override 
 	protected void merge(AWrapper src1, AWrapper src2, AWrapper trg){
-		//should not be called
+		System.err.println("feeeck");
 	}
 	
 	// Real implementation of join and widening
@@ -436,7 +444,6 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				int count = loopHeadCounts.get(s);
 				if (count > 5) { // we use GT because merge happens before the loop has been executed
 					trg.set(in1.widening(man, in2));
-					System.out.println("====>widen to: " + trg.toString());
 				} else { //merge and update count
 					trg.set(in1.joinCopy(man, in2));
 					loopHeadCounts.put(s, count + 1); //update count
@@ -444,6 +451,8 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			} else {
 				trg.set(in1.joinCopy(man, in2)); //normal join
 			}
+			
+			System.out.println(">>JOINING " + in1 + " & " + in2 + "\n>>to: " + trg.get());
 			
 		} catch (ApronException e){
 			e.printStackTrace();
@@ -528,7 +537,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	private void printLabel(Stmt s, AWrapper current){
 		iterCount++;
 		System.out.println("----------------------------------------------------------------------");
-		System.out.println("Iteration " + iterCount + ": " + s.toString() + s.getClass() + " \nWrapper: " + current.toString());
+		System.out.println("Iteration " + iterCount + ": " + s.toString() + " \nWrapper: " + current.toString());
 		System.out.println("======================================================================");
 		
 	}

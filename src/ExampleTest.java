@@ -23,14 +23,18 @@ public class ExampleTest {
 //	  a.fire(4);
 //  }
   
-  public static void n() {
-	  MissileBattery a = new MissileBattery(10);
-	  int x = 8;
-	  int y = 0;
-	  while(y < x){
-		  y++;
-	  }
-	  a.fire(y);
+  public static void l() {
+      int k=5;
+      int i=10;
+      
+      MissileBattery a = new MissileBattery(12);
+
+      while(k < 5){
+    	  k += 50;
+      }
+      
+      a.fire(k);
+
   }
 }
 
