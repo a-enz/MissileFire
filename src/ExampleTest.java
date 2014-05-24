@@ -14,6 +14,7 @@ public class ExampleTest {
 	  MissileBattery r = new MissileBattery(4);
 	  r.fire(i);
 	  a.fire(19);
+	  a.fire(19);
 	  b.fire(x);
 
   }

@@ -129,12 +129,12 @@ public class Verifier {
 
 		ArrayList<Integer> batterySizes = new ArrayList<Integer>();
 		
-//		for(Unit u : method.getActiveBody().getUnits()){
-//			if(u instanceof JInvokeStmt && ((JInvokeStmt)u).getInvokeExpr().toString().startsWith("specialinvoke")){
-//				System.out.println(((JInvokeStmt)u).getInvokeExpr().getArgCount());
-//				batterySizes.add(((JInvokeStmt)u).getInvokeExpr().getArgCount());
-//			}
-//		}
+		for(Unit u : method.getActiveBody().getUnits()){
+			if(u instanceof JInvokeStmt && ((JInvokeStmt)u).getInvokeExpr().toString().startsWith("specialinvoke")){
+				System.out.println(((JInvokeStmt)u).getInvokeExpr().getArgCount());
+				batterySizes.add(((JInvokeStmt)u).getInvokeExpr().getArgCount());
+			}
+		}
 				
 		for(Unit label : method.getActiveBody().getUnits()){
 			if((label instanceof JInvokeStmt) && (((JInvokeStmt)label).getInvokeExpr() instanceof JVirtualInvokeExpr)){
@@ -187,38 +187,49 @@ public class Verifier {
 				}
 				
 				//TODO check if bot or top, then check if out of bound or already fired, set 'isSafe' accordingly
-				if(argInterval.isTop()){
+				if(argInterval.isTop()){//we check for top because we can't assign inf to integers =)
 					isSafe = false;
 					break;
 				}
 				else{
-					
-					//to int array:
-					
+					//shitty way to convert interval borders to ints
 					double[] convert = new double[1];
 					argInterval.inf.toDouble(convert,0);
 					int lower = (int) convert[0];
 					argInterval.sup.toDouble(convert, 0);
 					int upper = (int) convert[0];
 					
+					//check the if the range is in the alowed interval
 					//missiles are fired in the range of [0,alreadyFired.lenth -1]
 					if(lower < 0 || upper >= alreadyFired.length){
 						isSafe = false;
 						break;
 					}
+					
+					//now mark fired missiles in the bitmap and report if we already fired a missile
+					//if we fire a single missile instead of range then: lower == upper
 					int i = lower;
-					while(i < upper){
+					if(lower == upper){
 						if(!alreadyFired[i]) alreadyFired[i] = true;
 						else{
 							isSafe = false;
 							break;
 						}
-						i++;
+					}else{
+						while(i < upper){
+							if(!alreadyFired[i]) alreadyFired[i] = true;
+							else{
+								isSafe = false;
+								break;
+							}
+							i++;
+						}
 					}
+					/*we need this conditional b/c when breaking out of above
+					 * while loop we didn't break out of the for loop (which we need to)
+					 */
 					if(!isSafe) break;
 				}
-				
-				
 			}
 		}
 		return isSafe;
