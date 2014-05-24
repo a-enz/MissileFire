@@ -1,9 +1,6 @@
 package ch.ethz.sae;
 
-<<<<<<< HEAD
 import java.util.List;
-=======
->>>>>>> 50c6095ddf01bc09ba5428ef9fba8f8d39909727
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -120,7 +117,7 @@ public class Verifier {
 	private static boolean isMethodSafe(Analysis analysis, PAG graph, SootMethod method){
 		
 		boolean isSafe = true;
-<<<<<<< HEAD
+		
 		Map<Local,boolean[]> allocSites = analysis.newMBattAlloc; //map of allocated MBatts
 		AWrapper state; //wrapper for the state at a specific label
 		
@@ -129,19 +126,16 @@ public class Verifier {
 		
 		
 		//we iterate over all labels and look at all fire commands:
-=======
+
 		ArrayList<Integer> batterySizes = new ArrayList<Integer>();
-		Map<Local,Integer> allocSites = analysis.newMBattAlloc;
-		AWrapper state;
 		
-		for(Unit u : method.getActiveBody().getUnits()){
-			if(u instanceof JInvokeStmt && ((JInvokeStmt)u).getInvokeExpr().toString().startsWith("specialinvoke")){
-				System.out.println(((JInvokeStmt)u).getInvokeExpr().getArgCount());
-				batterySizes.add(((JInvokeStmt)u).getInvokeExpr().getArgCount());
-			}
-		}
+//		for(Unit u : method.getActiveBody().getUnits()){
+//			if(u instanceof JInvokeStmt && ((JInvokeStmt)u).getInvokeExpr().toString().startsWith("specialinvoke")){
+//				System.out.println(((JInvokeStmt)u).getInvokeExpr().getArgCount());
+//				batterySizes.add(((JInvokeStmt)u).getInvokeExpr().getArgCount());
+//			}
+//		}
 				
->>>>>>> 50c6095ddf01bc09ba5428ef9fba8f8d39909727
 		for(Unit label : method.getActiveBody().getUnits()){
 			if((label instanceof JInvokeStmt) && (((JInvokeStmt)label).getInvokeExpr() instanceof JVirtualInvokeExpr)){
 				state = analysis.getFlowBefore(label);
