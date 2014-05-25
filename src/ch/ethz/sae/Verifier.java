@@ -186,8 +186,13 @@ public class Verifier {
 					argInterval = new Interval(-1,-1); //sure to be out of bound
 				}
 				
-				//TODO check if bot or top, then check if out of bound or already fired, set 'isSafe' accordingly
-				if(argInterval.isTop()){//we check for top because we can't assign inf to integers =)
+				//now we do the checks for out of bound and already fired missiles a.s.o.
+				if(state.isBottom()){
+					/* if the state is bottom ANY call to fire() is apparently safe? 
+					 * we do nothing (which mean keep 'isSafe' at true)
+					 */
+				}
+				else if (argInterval.isTop()){//we check for top because we can't assign inf to integers =)
 					isSafe = false;
 					break;
 				}
@@ -230,8 +235,8 @@ public class Verifier {
 					 */
 					if(!isSafe) break;
 				}
-			}
-		}
+			}//close if condition to check if this is a firecall
+		}//close iteration over method labels
 		return isSafe;
 	}
 }
