@@ -28,6 +28,8 @@ public class ExampleTest {
       int i=10;
       
       MissileBattery a = new MissileBattery(12);
+      MissileBattery b = new MissileBattery(3);
+      MissileBattery c = new MissileBattery(99);
 
       while(k < 5){
     	  k += 50;

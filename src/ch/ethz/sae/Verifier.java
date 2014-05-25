@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.sun.xml.internal.bind.v2.schemagen.xmlschema.List;
+
 import apron.ApronException;
 import apron.Interval;
 import soot.jimple.IntConstant;
@@ -115,16 +117,10 @@ public class Verifier {
 	private static boolean isMethodSafe(Analysis analysis, PAG graph, SootMethod method){
 		
 		boolean isSafe = true;
-		ArrayList<Integer> batterySizes = new ArrayList<Integer>();
+		
 		Map<Local,Integer> allocSites = analysis.newMBattAlloc;
 		AWrapper state;
 		
-		for(Unit u : method.getActiveBody().getUnits()){
-			if(u instanceof JInvokeStmt && ((JInvokeStmt)u).getInvokeExpr().toString().startsWith("specialinvoke")){
-				System.out.println(((JInvokeStmt)u).getInvokeExpr().getArgCount());
-				batterySizes.add(((JInvokeStmt)u).getInvokeExpr().getArgCount());
-			}
-		}
 				
 		for(Unit label : method.getActiveBody().getUnits()){
 			
