@@ -47,6 +47,14 @@ public class AWrapper {
 		}
 		return false;
 	}
+	
+	public boolean isBottom(){
+		try{
+			return elem.isBottom(man);
+		} catch (ApronException e){
+			return false;
+		}
+	}
 
 	public String toString() {
 		try {
