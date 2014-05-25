@@ -1,6 +1,5 @@
 public class ExampleTest {
 	
-	
 //  public static void l() {
 //	  MissileBattery a = new MissileBattery(5);
 //	  int x = 5;
@@ -22,20 +21,24 @@ public class ExampleTest {
 //	  a.fire(4);
 //	  a.fire(4);
 //  }
-  
-  public static void l() {
-      int k=5;
-      int i=10;
-      
-      MissileBattery a = new MissileBattery(12);
-      MissileBattery b = new MissileBattery(3);
-      MissileBattery c = new MissileBattery(99);
 
-      while(k < 5){
-    	  k += 50;
-      }
-      
-      a.fire(k);
+
+  public static void l() {
+	  int x = 10;
+	  int i = 0;
+	  
+	  MissileBattery a = new MissileBattery(20);
+	  MissileBattery b = new MissileBattery(14);
+	  
+	  while (i < 3){
+		  x++;
+		  i++;
+	  }
+	  MissileBattery r = new MissileBattery(4);
+	  r.fire(i);
+	  a.fire(19);
+	  a.fire(19);
+	  b.fire(x);
 
   }
 }

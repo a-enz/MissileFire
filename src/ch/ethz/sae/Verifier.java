@@ -1,12 +1,12 @@
 package ch.ethz.sae;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import com.sun.xml.internal.bind.v2.schemagen.xmlschema.List;
 
 import apron.ApronException;
 import apron.Interval;
@@ -118,27 +118,37 @@ public class Verifier {
 		
 		boolean isSafe = true;
 		
-		Map<Local,Integer> allocSites = analysis.newMBattAlloc;
-		AWrapper state;
+		Map<Local,boolean[]> allocSites = analysis.newMBattAlloc; //map of allocated MBatts
+		AWrapper state; //wrapper for the state at a specific label
+		
+		//initialize the boolean field for all allocation nodes:
+		List<boolean[]> firedMissiles = new ArrayList<boolean[]>();
+		
+		
+		//we iterate over all labels and look at all fire commands:
+
+		ArrayList<Integer> batterySizes = new ArrayList<Integer>();
 		
 				
 		for(Unit label : method.getActiveBody().getUnits()){
-			
 			if((label instanceof JInvokeStmt) && (((JInvokeStmt)label).getInvokeExpr() instanceof JVirtualInvokeExpr)){
 				state = analysis.getFlowBefore(label);
 				
+				//we get the missileObj the fire command is executed on and the argument of the call
 				JVirtualInvokeExpr expr = (JVirtualInvokeExpr) ((JInvokeStmt) label).getInvokeExpr();
 				Value missileObject = expr.getBase();
 				Value argument = expr.getArg(0); //might be JimpleLocal or IntConstant
 				
+				//now we get information about the allocation node of the missileObj
 				PointsToSet p2s = graph.reachingObjects((Local) missileObject);
 				
-				int size = 0;
+				boolean[] alreadyFired = {};
 				Interval argInterval;
 				Interval missileInterval;
 				
+				//TEST OUTPUT START
 				System.out.println(missileObject + " has been allocated at: " + p2s);
-				
+				//TEST OUPUT END
 				
 				/* absolute shit-style programming coming up:
 				 * iterate through all allocated MBatt objects
@@ -147,41 +157,73 @@ public class Verifier {
 				 * created object
 				 */
 				
-				for(Entry<Local,Integer> entry : allocSites.entrySet()){
+				for(Entry<Local,boolean[]> entry : allocSites.entrySet()){
 					if(graph.reachingObjects(entry.getKey()).hasNonEmptyIntersection(p2s)){
-						size = entry.getValue();
+						alreadyFired = entry.getValue();
 						break;
 					}
 				}
 				
-				try{
-					missileInterval = new Interval(0,size);
-					if(argument instanceof IntConstant) {
-						int value = ((IntConstant) argument).value;
-						argInterval = new Interval(value, value);
-					}
-					else if(argument instanceof JimpleLocal){
-						argInterval = state.get().getBound(analysis.man, argument.toString());
-					}
-					else {
-						argInterval = new Interval(-2,-1);
-					}
-					
-					int intersectCount = missileInterval.cmp(argInterval);
-					if(intersectCount <= 0) {
-						isSafe = false; break;
-					}
-				} catch (ApronException e){
-					
-				}
-				/* TODO Next steps to implement:
-				 * 1. get allocation site DONE
-				 * 2. retrieve size interval of specific MBatt with allocation info DONE
-				 * 3. check if fire command violates rules:
-				 * 	-->can't fire missile twice
-				 *  -->can't fire missile out of size interval
+				/*t his try catch block should probably be moved to an Analysis class method b/c
+				 * it uses a lot of apron classes (we should keep the apron stuff in Analysis.java)
+				 * --> create a method `toInterval` or similar.
 				 */
 				
+				if(argument instanceof IntConstant) {
+					int value = ((IntConstant) argument).value;
+					argInterval = new Interval(value,value);
+				}
+				else if(argument instanceof JimpleLocal){
+					argInterval = analysis.toInterval(state, argument.toString());
+				}
+				else{
+					argInterval = new Interval(-1,-1); //sure to be out of bound
+				}
+				
+				//TODO check if bot or top, then check if out of bound or already fired, set 'isSafe' accordingly
+				if(argInterval.isTop()){//we check for top because we can't assign inf to integers =)
+					isSafe = false;
+					break;
+				}
+				else{
+					//shitty way to convert interval borders to ints
+					double[] convert = new double[1];
+					argInterval.inf.toDouble(convert,0);
+					int lower = (int) convert[0];
+					argInterval.sup.toDouble(convert, 0);
+					int upper = (int) convert[0];
+					
+					//check the if the range is in the alowed interval
+					//missiles are fired in the range of [0,alreadyFired.lenth -1]
+					if(lower < 0 || upper >= alreadyFired.length){
+						isSafe = false;
+						break;
+					}
+					
+					//now mark fired missiles in the bitmap and report if we already fired a missile
+					//if we fire a single missile instead of range then: lower == upper
+					int i = lower;
+					if(lower == upper){
+						if(!alreadyFired[i]) alreadyFired[i] = true;
+						else{
+							isSafe = false;
+							break;
+						}
+					}else{
+						while(i < upper){
+							if(!alreadyFired[i]) alreadyFired[i] = true;
+							else{
+								isSafe = false;
+								break;
+							}
+							i++;
+						}
+					}
+					/*we need this conditional b/c when breaking out of above
+					 * while loop we didn't break out of the for loop (which we need to)
+					 */
+					if(!isSafe) break;
+				}
 			}
 		}
 		return isSafe;

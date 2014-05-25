@@ -13,6 +13,7 @@ import com.sun.org.apache.bcel.internal.generic.LCONST;
 import apron.Abstract1;
 import apron.ApronException;
 import apron.Environment;
+import apron.Interval;
 import apron.Lincons1;
 import apron.Linexpr1;
 import apron.Linterm1;
@@ -55,14 +56,13 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 	public SootClass jclass;
 	//helper int
 	private int iterCount = 0;
-	private int JNewStmtCount = 0;
 	
 	/* The following HashMap we will be using to keep track of loops:
 	 * Key value is the BackJumpStmt of the loop and the Integer
 	 * Value indicates how many times the Stmt has been executed
 	 */
 	private Map<Stmt,Integer> loopHeadCounts = new HashMap<Stmt,Integer>();
-	public Map<Local,Integer> newMBattAlloc = new HashMap<Local,Integer>();
+	public Map<Local,boolean[]> newMBattAlloc = new HashMap<Local,boolean[]>();
 
 	
 	/* === Constructor === */
@@ -354,9 +354,8 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 					Value capacity = ((JSpecialInvokeExpr) expr).getArg(0);
 					Local missileObj = (Local) ((JSpecialInvokeExpr) expr).getBase();
 					if(capacity instanceof IntConstant){
-						JNewStmtCount++;
 						//safe newly instantiated MBatt object and argument int
-						newMBattAlloc.put(missileObj, ((IntConstant) capacity).value);
+						newMBattAlloc.put(missileObj, new boolean[((IntConstant) capacity).value]);
 					} else{
 						unhandled("MissileBattery not instantiated with IntConstant");
 					}
@@ -451,9 +450,9 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			} else {
 				trg.set(in1.joinCopy(man, in2)); //normal join
 			}
-			
+			//TEST OUTPUT START
 			System.out.println(">>JOINING " + in1 + " & " + in2 + "\n>>to: " + trg.get());
-			
+			//TEST OUTPUT END
 		} catch (ApronException e){
 			e.printStackTrace();
 		}
@@ -533,6 +532,13 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		
 	}
 	
+	public Interval toInterval(AWrapper state, String var){
+		try { 
+			return state.get().getBound(man, var);
+		} catch (ApronException e){
+			return null;
+		}
+	}
 	//TEST OUTPUT START
 	private void printLabel(Stmt s, AWrapper current){
 		iterCount++;
