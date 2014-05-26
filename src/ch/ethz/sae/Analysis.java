@@ -152,8 +152,11 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			AWrapper ow_branchout) throws ApronException {
 		
 		Value left = expr.getOp1();
-		Value right = expr.getOp2();		
+		Value right = expr.getOp2();
 		
+		if(left.getType().toString().equals("MissileBattery") || right.getType().toString().equals("MissileBattery")){
+			return;
+		}
 		//sets variable true if right operand on binary comparison is variable, false if const., error otherwise.
 		boolean rightIsVariable = false;
 		if(right instanceof JimpleLocal){
@@ -168,7 +171,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			leftIsVariable = true;
 		}else if(left instanceof IntConstant){
 		}else{
-			unhandled("right operand of binaryexpression in if statement");
+			unhandled("left operand of binaryexpression in if statement");
 		}
 		
 		//handle an expression like: x 'comparison operator' (y/const.)

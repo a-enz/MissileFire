@@ -129,12 +129,6 @@ public class Verifier {
 
 		ArrayList<Integer> batterySizes = new ArrayList<Integer>();
 		
-		for(Unit u : method.getActiveBody().getUnits()){
-			if(u instanceof JInvokeStmt && ((JInvokeStmt)u).getInvokeExpr().toString().startsWith("specialinvoke")){
-				System.out.println(((JInvokeStmt)u).getInvokeExpr().getArgCount());
-				batterySizes.add(((JInvokeStmt)u).getInvokeExpr().getArgCount());
-			}
-		}
 				
 		for(Unit label : method.getActiveBody().getUnits()){
 			if((label instanceof JInvokeStmt) && (((JInvokeStmt)label).getInvokeExpr() instanceof JVirtualInvokeExpr)){
