@@ -194,20 +194,24 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			
 			Tcons1 consIf = new Tcons1(Tcons1.EQ, new Texpr1Intern(env, new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
 			
-			Tcons1 consElse = new Tcons1(Tcons1.DISEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			//Tcons1 consElse = new Tcons1(Tcons1.DISEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			Tcons1 consElseGt = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			Tcons1 consElseLt = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
 
-			ow.set(new Abstract1(man, new Tcons1[] {consIf}));
-			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));	
+			ow.set(new Abstract1(man, new Tcons1[] {consElseGt,consElseLt}));
+			ow_branchout.set(new Abstract1(man, new Tcons1[] {consIf}));	
 
 		}
 		else if (expr instanceof JNeExpr){
 			
-			Tcons1 consIf = new Tcons1(Tcons1.DISEQ, new Texpr1Intern(env, new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
-			
+			//Tcons1 consIf = new Tcons1(Tcons1.DISEQ, new Texpr1Intern(env, new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			Tcons1 consIfGt = new Tcons1(Tcons1.SUP, new Texpr1Intern(env, new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			Tcons1 consIfLt = new Tcons1(Tcons1.SUP, new Texpr1Intern(env, new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
+ 
 			Tcons1 consElse = new Tcons1(Tcons1.EQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
 
 			ow.set(new Abstract1(man, new Tcons1[] {consElse}));
-			ow_branchout.set(new Abstract1(man, new Tcons1[] {consIf}));
+			ow_branchout.set(new Abstract1(man, new Tcons1[] {consIfGt,consIfLt}));
 		}
 		else if (expr instanceof JGeExpr){
 
