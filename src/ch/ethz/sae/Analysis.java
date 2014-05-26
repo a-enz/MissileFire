@@ -78,11 +78,11 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		
 		
 		//TEST OUTPUT START
-		System.out.println("*******************************\nInitializing Grid for the following Integer Variables:");
-		for(String name : local_ints){
-			System.out.print(name + "   ");
-		}
-		System.out.println();
+//		System.out.println("*******************************\nInitializing Grid for the following Integer Variables:");
+//		for(String name : local_ints){
+//			System.out.print(name + "   ");
+//		}
+//		System.out.println();
 		//TEST OUTPUT END
 	}
 	
@@ -311,17 +311,17 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		try {
 			//TEST OUTPUT START
 			
-			printLabel(s,current);
-			
-			System.out.print("BEFORE TRANSFORMER:\nfallOut:");
-			for(AWrapper fo : fallOut) {
-				System.out.print(fo.toString());
-			}
-			System.out.print("\nbranchOuts:");
-			for(AWrapper bo : branchOuts){
-				System.out.print(bo.toString());
-			}
-			System.out.println();
+//			printLabel(s,current);
+//			
+//			System.out.print("BEFORE TRANSFORMER:\nfallOut:");
+//			for(AWrapper fo : fallOut) {
+//				System.out.print(fo.toString());
+//			}
+//			System.out.print("\nbranchOuts:");
+//			for(AWrapper bo : branchOuts){
+//				System.out.print(bo.toString());
+//			}
+//			System.out.println();
 			
 			//TEST OUTPUT END
 			
@@ -399,15 +399,15 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			
 
 			//TEST OUTPUT START
-			System.out.print("\nAFTER TRANSORMER:\nfallOut:");
-			for(AWrapper fo : fallOut) {
-				System.out.print(fo.toString());
-			}
-			System.out.print("\nbranchOuts:");
-			for(AWrapper bo : branchOuts){
-				System.out.print(bo.toString());
-			}
-			System.out.println("\n");
+//			System.out.print("\nAFTER TRANSORMER:\nfallOut:");
+//			for(AWrapper fo : fallOut) {
+//				System.out.print(fo.toString());
+//			}
+//			System.out.print("\nbranchOuts:");
+//			for(AWrapper bo : branchOuts){
+//				System.out.print(bo.toString());
+//			}
+//			System.out.println("\n");
 			//TEST OUTPUT END
 			
 			
@@ -458,7 +458,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				trg.set(in1.joinCopy(man, in2)); //normal join
 			}
 			//TEST OUTPUT START
-			System.out.println(">>JOINING " + in1 + " & " + in2 + "\n>>to: " + trg.get());
+//			System.out.println(">>JOINING " + in1 + " & " + in2 + "\n>>to: " + trg.get());
 			//TEST OUTPUT END
 		} catch (ApronException e){
 			e.printStackTrace();
@@ -547,12 +547,12 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		}
 	}
 	//TEST OUTPUT START
-	private void printLabel(Stmt s, AWrapper current){
-		iterCount++;
-		System.out.println("----------------------------------------------------------------------");
-		System.out.println("Iteration " + iterCount + ": " + s.toString() + " \nWrapper: " + current.toString());
-		System.out.println("======================================================================");
-		
-	}
+//	private void printLabel(Stmt s, AWrapper current){
+//		iterCount++;
+//		System.out.println("----------------------------------------------------------------------");
+//		System.out.println("Iteration " + iterCount + ": " + s.toString() + " \nWrapper: " + current.toString());
+//		System.out.println("======================================================================");
+//		
+//	}
 	//TEST OUTPUT END
 }

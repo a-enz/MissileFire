@@ -49,8 +49,8 @@ public class Verifier {
 			if(!method.getName().equals("<init>")){//cheap way to ignore the first function which should always be the same
 				
 				//TEST OUTPUT START
-				System.out.println("method toString:\n" + method.toString());
-				System.out.println(method.getActiveBody().toString());
+//				System.out.println("method toString:\n" + method.toString());
+//				System.out.println(method.getActiveBody().toString());
 				//TEST OUTPUT END
 				
 				
@@ -60,7 +60,7 @@ public class Verifier {
 				for (Local var : method.getActiveBody().getLocals()){
 					if (var.getType().toString().equals("MissileBattery")){
 						DoublePointsToSet allocSite = (DoublePointsToSet) pointsToAnalysis.reachingObjects(var);
-						System.out.println("Var :" + var.getName() + " reaches " + allocSite);
+//						System.out.println("Var :" + var.getName() + " reaches " + allocSite);
 					}
 					
 				}
@@ -69,7 +69,7 @@ public class Verifier {
 				
 				for(Unit u: method.getActiveBody().getUnits()){
 					AWrapper a = analysis.getFlowBefore(u);
-					System.out.println("Wrapper " + a.toString() + " | Label: " + u);
+//					System.out.println("Wrapper " + a.toString() + " | Label: " + u);
 				}
 				
 				//now check if the method is safe
@@ -147,7 +147,7 @@ public class Verifier {
 				Interval missileInterval;
 				
 				//TEST OUTPUT START
-				System.out.println(missileObject + " has been allocated at: " + p2s);
+//				System.out.println(missileObject + " has been allocated at: " + p2s);
 				//TEST OUPUT END
 				
 				/* absolute shit-style programming coming up:
