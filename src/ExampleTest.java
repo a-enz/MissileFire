@@ -1,23 +1,12 @@
 public class ExampleTest {
-	public static void t17_safe() {
-		MissileBattery a = new MissileBattery(6);
-		MissileBattery b = new MissileBattery(6);
-		MissileBattery c = new MissileBattery(6);
-		int i,j;
-		if (b == c) {
-			i = 3;
-		} else {
-			i = 5;
-		}
+	public static void t16_safe() {
+		MissileBattery b = new MissileBattery(5);
+		b = new MissileBattery(6);
+		MissileBattery a = b;
 		
-		if (b == c) {
-			j = 0;
-		} else {
-			j = 2;
-		}
+		int i = 5;
 		
 		a.fire(i);
-		a.fire(j);
 	}
 }
 

@@ -69,7 +69,7 @@ public class Verifier {
 				
 				for(Unit u: method.getActiveBody().getUnits()){
 					AWrapper a = analysis.getFlowBefore(u);
-					System.out.println(a.toString());
+					System.out.println("Wrapper " + a.toString() + " | Label: " + u);
 				}
 				
 				//now check if the method is safe
