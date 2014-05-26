@@ -78,11 +78,11 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		
 		
 		//TEST OUTPUT START
-		System.out.println("*******************************\nInitializing Grid for the following Integer Variables:");
-		for(String name : local_ints){
-			System.out.print(name + "   ");
-		}
-		System.out.println();
+//		System.out.println("*******************************\nInitializing Grid for the following Integer Variables:");
+//		for(String name : local_ints){
+//			System.out.print(name + "   ");
+//		}
+//		System.out.println();
 		//TEST OUTPUT END
 	}
 	
@@ -194,20 +194,24 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			
 			Tcons1 consIf = new Tcons1(Tcons1.EQ, new Texpr1Intern(env, new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
 			
-			Tcons1 consElse = new Tcons1(Tcons1.DISEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			//Tcons1 consElse = new Tcons1(Tcons1.DISEQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			Tcons1 consElseGt = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			Tcons1 consElseLt = new Tcons1(Tcons1.SUP,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
 
-			ow.set(new Abstract1(man, new Tcons1[] {consIf}));
-			ow_branchout.set(new Abstract1(man, new Tcons1[] {consElse}));	
+			ow.set(new Abstract1(man, new Tcons1[] {consElseGt,consElseLt}));
+			ow_branchout.set(new Abstract1(man, new Tcons1[] {consIf}));	
 
 		}
 		else if (expr instanceof JNeExpr){
 			
-			Tcons1 consIf = new Tcons1(Tcons1.DISEQ, new Texpr1Intern(env, new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
-			
+			//Tcons1 consIf = new Tcons1(Tcons1.DISEQ, new Texpr1Intern(env, new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			Tcons1 consIfGt = new Tcons1(Tcons1.SUP, new Texpr1Intern(env, new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
+			Tcons1 consIfLt = new Tcons1(Tcons1.SUP, new Texpr1Intern(env, new Texpr1BinNode(Texpr1BinNode.OP_SUB, rightNode, leftNode)));
+ 
 			Tcons1 consElse = new Tcons1(Tcons1.EQ,new Texpr1Intern(env,new Texpr1BinNode(Texpr1BinNode.OP_SUB, leftNode, rightNode)));
 
 			ow.set(new Abstract1(man, new Tcons1[] {consElse}));
-			ow_branchout.set(new Abstract1(man, new Tcons1[] {consIf}));
+			ow_branchout.set(new Abstract1(man, new Tcons1[] {consIfGt,consIfLt}));
 		}
 		else if (expr instanceof JGeExpr){
 
@@ -307,17 +311,17 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		try {
 			//TEST OUTPUT START
 			
-			printLabel(s,current);
-			
-			System.out.print("BEFORE TRANSFORMER:\nfallOut:");
-			for(AWrapper fo : fallOut) {
-				System.out.print(fo.toString());
-			}
-			System.out.print("\nbranchOuts:");
-			for(AWrapper bo : branchOuts){
-				System.out.print(bo.toString());
-			}
-			System.out.println();
+//			printLabel(s,current);
+//			
+//			System.out.print("BEFORE TRANSFORMER:\nfallOut:");
+//			for(AWrapper fo : fallOut) {
+//				System.out.print(fo.toString());
+//			}
+//			System.out.print("\nbranchOuts:");
+//			for(AWrapper bo : branchOuts){
+//				System.out.print(bo.toString());
+//			}
+//			System.out.println();
 			
 			//TEST OUTPUT END
 			
@@ -395,15 +399,15 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 			
 
 			//TEST OUTPUT START
-			System.out.print("\nAFTER TRANSORMER:\nfallOut:");
-			for(AWrapper fo : fallOut) {
-				System.out.print(fo.toString());
-			}
-			System.out.print("\nbranchOuts:");
-			for(AWrapper bo : branchOuts){
-				System.out.print(bo.toString());
-			}
-			System.out.println("\n");
+//			System.out.print("\nAFTER TRANSORMER:\nfallOut:");
+//			for(AWrapper fo : fallOut) {
+//				System.out.print(fo.toString());
+//			}
+//			System.out.print("\nbranchOuts:");
+//			for(AWrapper bo : branchOuts){
+//				System.out.print(bo.toString());
+//			}
+//			System.out.println("\n");
 			//TEST OUTPUT END
 			
 			
@@ -454,7 +458,7 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 				trg.set(in1.joinCopy(man, in2)); //normal join
 			}
 			//TEST OUTPUT START
-			System.out.println(">>JOINING " + in1 + " & " + in2 + "\n>>to: " + trg.get());
+//			System.out.println(">>JOINING " + in1 + " & " + in2 + "\n>>to: " + trg.get());
 			//TEST OUTPUT END
 		} catch (ApronException e){
 			e.printStackTrace();
@@ -543,12 +547,12 @@ public class Analysis extends ForwardBranchedFlowAnalysis<AWrapper> {
 		}
 	}
 	//TEST OUTPUT START
-	private void printLabel(Stmt s, AWrapper current){
-		iterCount++;
-		System.out.println("----------------------------------------------------------------------");
-		System.out.println("Iteration " + iterCount + ": " + s.toString() + " \nWrapper: " + current.toString());
-		System.out.println("======================================================================");
-		
-	}
+//	private void printLabel(Stmt s, AWrapper current){
+//		iterCount++;
+//		System.out.println("----------------------------------------------------------------------");
+//		System.out.println("Iteration " + iterCount + ": " + s.toString() + " \nWrapper: " + current.toString());
+//		System.out.println("======================================================================");
+//		
+//	}
 	//TEST OUTPUT END
 }
