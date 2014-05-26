@@ -1,27 +1,17 @@
 package ch.ethz.sae;
 
-import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
-
-import com.sun.org.apache.bcel.internal.generic.LCONST;
-
 import apron.Abstract1;
 import apron.ApronException;
 import apron.Environment;
 import apron.Interval;
-import apron.Lincons1;
-import apron.Linexpr1;
-import apron.Linterm1;
 import apron.Manager;
 import apron.MpqScalar;
 import apron.Polka;
 import apron.Tcons1;
-import apron.Texpr0Node;
 import apron.Texpr1BinNode;
 import apron.Texpr1CstNode;
 import apron.Texpr1Intern;
@@ -31,7 +21,6 @@ import soot.IntegerType;
 import soot.Local;
 import soot.SootClass;
 import soot.Unit;
-import soot.UnitBox;
 import soot.Value;
 import soot.jimple.BinopExpr;
 import soot.jimple.DefinitionStmt;

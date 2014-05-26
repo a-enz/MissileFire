@@ -1,14 +1,10 @@
 package ch.ethz.sae;
 
-import java.util.List;
-import java.util.ArrayList;
+
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import apron.ApronException;
 import apron.Interval;
 import soot.jimple.IntConstant;
 import soot.jimple.internal.JInvokeStmt;
@@ -16,7 +12,6 @@ import soot.jimple.internal.JVirtualInvokeExpr;
 import soot.jimple.internal.JimpleLocal;
 import soot.jimple.spark.SparkTransformer;
 import soot.jimple.spark.pag.PAG;
-import soot.jimple.spark.sets.DoublePointsToSet;
 import soot.Local;
 import soot.PointsToSet;
 import soot.Scene;
@@ -56,21 +51,24 @@ public class Verifier {
 				
 				Analysis analysis = new Analysis(new BriefUnitGraph(
 						method.retrieveActiveBody()), c);
-				
-				for (Local var : method.getActiveBody().getLocals()){
-					if (var.getType().toString().equals("MissileBattery")){
-						DoublePointsToSet allocSite = (DoublePointsToSet) pointsToAnalysis.reachingObjects(var);
+				//TEST OUTPUT START
+//				for (Local var : method.getActiveBody().getLocals()){
+//					if (var.getType().toString().equals("MissileBattery")){
+//						DoublePointsToSet allocSite = (DoublePointsToSet) pointsToAnalysis.reachingObjects(var);
 //						System.out.println("Var :" + var.getName() + " reaches " + allocSite);
-					}
-					
-				}
+//					}
+//					
+//				}
+				//TEST OUTPUT END
 				
 				analysis.run();
 				
-				for(Unit u: method.getActiveBody().getUnits()){
-					AWrapper a = analysis.getFlowBefore(u);
+				//TEST OUTPUT START
+//				for(Unit u: method.getActiveBody().getUnits()){
+//					AWrapper a = analysis.getFlowBefore(u);
 //					System.out.println("Wrapper " + a.toString() + " | Label: " + u);
-				}
+//				}
+				//TEST OUTPUT END
 				
 				//now check if the method is safe
 				if(!isMethodSafe(analysis, pointsToAnalysis, method)){
@@ -121,15 +119,7 @@ public class Verifier {
 		Map<Local,boolean[]> allocSites = analysis.newMBattAlloc; //map of allocated MBatts
 		AWrapper state; //wrapper for the state at a specific label
 		
-		//initialize the boolean field for all allocation nodes:
-		List<boolean[]> firedMissiles = new ArrayList<boolean[]>();
-		
-		
 		//we iterate over all labels and look at all fire commands:
-
-		ArrayList<Integer> batterySizes = new ArrayList<Integer>();
-		
-				
 		for(Unit label : method.getActiveBody().getUnits()){
 			if((label instanceof JInvokeStmt) && (((JInvokeStmt)label).getInvokeExpr() instanceof JVirtualInvokeExpr)){
 				state = analysis.getFlowBefore(label);

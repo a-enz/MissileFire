@@ -1,15 +1,15 @@
 public class ExampleTest {
 
-	public static void t21_safe() {
-		MissileBattery a = new MissileBattery(4);
-		MissileBattery b = a;
-		int i = 1;
-		int j = 2;
-		while(i + j < 4) {
+	public static void t14_unsafe() {
+		MissileBattery b = new MissileBattery(6);
+		
+		int i = 0;
+		while (i != 0) {
 			i++;
-			j--;
+			i--;
 		}
-		b.fire(5);
+		
+		b.fire(10);
 	}
 }
 
